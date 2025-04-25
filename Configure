@@ -463,7 +463,8 @@ my @disablables = (
     "req-status",
     "dycert-ocsp",
     "delegated-credential",
-    "cert-compression"
+    "cert-compression",
+    "oqs"
     );
 foreach my $proto ((@tls, @dtls))
         {
@@ -514,6 +515,7 @@ our %disabled = ( # "what"         => "comment"
                   "delegated-credential" => "default",
                   "cert-compression"    => "default",
                   "export-sm4"          => "default",
+                  "oqs"                 => "default",
                 );
 
 # Note: => pair form used for aesthetics, not to truly make a hash table

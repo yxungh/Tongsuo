@@ -40,7 +40,16 @@ extern "C" {
  *  major minor fix final patch/beta)
  */
 # define OPENSSL_VERSION_NUMBER  0x10101080L
-# define OPENSSL_VERSION_TEXT    "OpenSSL 1.1.1h  22 Sep 2020"
+#ifndef OPENSSL_NO_OQS
+# define OPENSSL_VERSION_TEXT "OpenSSL 1.1.1h  22 Sep 2020"
+#else
+# define OPENSSL_VERSION_TEXT "OpenSSL 1.1.1h  22 Sep 2020, Open Quantum Safe 2025-04"
+#endif
+
+/*-
+ * Numeric release version identifier:
+ * MNNFFSSS: major minor fix status
+ * The status nibble has one of the values 0 for development, 1 to e for betas
 
 /*-
  * The macros below are to be used for shared library (.so, .dll, ...)

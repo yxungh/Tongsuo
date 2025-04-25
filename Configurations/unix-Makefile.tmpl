@@ -120,6 +120,7 @@ SHLIB_TARGET={- $target{shared_target} -}
 SHLIB_EXT={- $shlibext -}
 SHLIB_EXT_SIMPLE={- $shlibextsimple -}
 SHLIB_EXT_IMPORT={- $shlibextimport -}
+OQSLIBDIR:=$(wildcard $(SRCDIR)/oqs/lib*)
 
 LIBS={- join(" ", map { lib($_) } @{$unified_info{libraries}}) -}
 SHLIBS={- join(" ", map { shlib($_) } @{$unified_info{libraries}}) -}
@@ -346,12 +347,15 @@ CNF_CPPFLAGS={- our $cppflags2 =
                                               @{$config{includes}}),
                               @{$config{cppflags}}) -}
 CNF_CFLAGS={- join(' ', $target{cflags} || (),
+                        "-Ioqs/include",
                         @{$config{cflags}}) -}
 CNF_CXXFLAGS={- join(' ', $target{cxxflags} || (),
                           @{$config{cxxflags}}) -}
 CNF_LDFLAGS={- join(' ', $target{lflags} || (),
+                        "-Loqs/lib -Loqs/lib64",
                          @{$config{lflags}}) -}
 CNF_EX_LIBS={- join(' ', $target{ex_libs} || (),
+                        "-loqs",
                          @{$config{ex_libs}}) -}
 
 # Variables starting with LIB_ are used to build library object files
@@ -456,7 +460,7 @@ LANG=C
 {- dependmagic('build_programs'); -}: build_programs_nodep
 
 build_generated: $(GENERATED_MANDATORY)
-build_libs_nodep: libcrypto.pc libssl.pc openssl.pc
+build_libs_nodep: libcrypto.pc libssl.pc openssl.pc liboqs.pc
 build_engines_nodep: $(ENGINES)
 build_programs_nodep: $(PROGRAMS) $(SCRIPTS)
 
@@ -527,12 +531,13 @@ clean: libclean
 	$(RM) core
 	$(RM) tags TAGS doc-nits
 	$(RM) -r test/test-runs
-	$(RM) openssl.pc libcrypto.pc libssl.pc
-	-$(RM) `find . -type l \! -name '.*' -print`
+	$(RM) openssl.pc libcrypto.pc libssl.pc liboqs.pc
+    -$(RM) `find . -type l \! -name '.*' \! -name 'liboqs.*' -print`
 
 distclean: clean
 	$(RM) configdata.pm
 	$(RM) Makefile
+    -$(RM) -rf oqs
 
 # We check if any depfile is newer than Makefile and decide to
 # concatenate only if that is true.
@@ -615,6 +620,13 @@ install_dev: install_runtime_libs
 		cp $$i "$(DESTDIR)$(INSTALLTOP)/include/openssl/$$fn"; \
 		chmod 644 "$(DESTDIR)$(INSTALLTOP)/include/openssl/$$fn"; \
 	done
+    @$(PERL) $(SRCDIR)/util/mkdir-p.pl "$(DESTDIR)$(INSTALLTOP)/include/oqs"
+	@set -e; for i in $(SRCDIR)/oqs/include/oqs/*.h; do \
+		fn=`basename $$i`; \
+		$(ECHO) "install $$i -> $(DESTDIR)$(INSTALLTOP)/include/oqs/$$fn"; \
+		cp $$i "$(DESTDIR)$(INSTALLTOP)/include/oqs/$$fn"; \
+		chmod 644 "$(DESTDIR)$(INSTALLTOP)/include/oqs/$$fn"; \
+	done
 	@$(PERL) $(SRCDIR)/util/mkdir-p.pl "$(DESTDIR)$(libdir)"
 	@set -e; for l in $(INSTALL_LIBS); do \
 		fn=`basename $$l`; \
@@ -670,6 +682,9 @@ install_dev: install_runtime_libs
 	@$(ECHO) "install openssl.pc -> $(DESTDIR)$(libdir)/pkgconfig/openssl.pc"
 	@cp openssl.pc "$(DESTDIR)$(libdir)/pkgconfig"
 	@chmod 644 "$(DESTDIR)$(libdir)/pkgconfig/openssl.pc"
+    @$(ECHO) "install liboqs.pc -> $(DESTDIR)$(libdir)/pkgconfig/liboqs.pc"
+	@cp liboqs.pc $(DESTDIR)$(libdir)/pkgconfig
+	@chmod 644 $(DESTDIR)$(libdir)/pkgconfig/liboqs.pc
 
 uninstall_dev: uninstall_runtime_libs
 	@$(ECHO) "*** Uninstalling development files"
@@ -712,6 +727,7 @@ uninstall_dev: uninstall_runtime_libs
 	$(RM) "$(DESTDIR)$(libdir)/pkgconfig/libcrypto.pc"
 	$(RM) "$(DESTDIR)$(libdir)/pkgconfig/libssl.pc"
 	$(RM) "$(DESTDIR)$(libdir)/pkgconfig/openssl.pc"
+    $(RM) "$(DESTDIR)$(libdir)/pkgconfig/liboqs.pc"
 	-$(RMDIR) "$(DESTDIR)$(libdir)/pkgconfig"
 	-$(RMDIR) "$(DESTDIR)$(libdir)"
 
@@ -769,6 +785,25 @@ install_runtime_libs: build_libs
 		      "$(DESTDIR)$(libdir)/$$fn"; \
 		: {- output_on() if windowsdll(); "" -}; \
 	done
+
+ifeq (,$(OQSLIBDIR))
+	@$(ECHO) "No OQS library directory found to install. Exiting install with failure."
+	exit 1
+endif
+ifneq (,$(wildcard $(OQSLIBDIR)/liboqs.a))
+	$(ECHO) "install $(OQSLIBDIR)/liboqs.a $(DESTDIR)$(libdir)"; \
+	install $(OQSLIBDIR)/liboqs.a $(DESTDIR)$(libdir)
+endif
+ifneq (,$(wildcard $(OQSLIBDIR)/liboqs.so.0*))
+	@set -e; for i in $(OQSLIBDIR)/liboqs.so.0.*; do \
+		fn=`basename $$i`; \
+		sn=`basename $(OQSLIBDIR)/liboqs.so.?`; \
+		$(ECHO) "install $(OQSLIBDIR)/$$fn $(DESTDIR)$(libdir)"; \
+		$(ECHO) "cd $(DESTDIR)$(libdir) && ln -sf $$fn liboqs.so && ln -sf $$fn $$sn && cd -"; \
+		install $(OQSLIBDIR)/$$fn $(DESTDIR)$(libdir); \
+		cd $(DESTDIR)$(libdir) && ln -sf $$fn liboqs.so && ln -sf $$fn $$sn && cd -; \
+	done
+endif
 
 install_programs: install_runtime_libs build_programs
 	@[ -n "$(INSTALLTOP)" ] || (echo INSTALLTOP should not be empty; exit 1)
@@ -995,6 +1030,23 @@ libssl.pc:
 	    echo 'Libs: -L$${libdir} -lssl'; \
 	    echo 'Cflags: -I$${includedir}' ) > libssl.pc
 
+liboqs.pc:
+	@ ( echo 'prefix=$(INSTALLTOP)'; \
+	    echo 'exec_prefix=$${prefix}'; \
+	    if [ -n "$(LIBDIR)" ]; then \
+	        echo 'libdir=$${exec_prefix}/$(LIBDIR)'; \
+	    else \
+	        echo 'libdir=$(libdir)'; \
+	    fi; \
+	    echo 'includedir=$${prefix}/include'; \
+	    echo ''; \
+	    echo 'Name: liboqs'; \
+	    echo 'Description: Open Quantum Safe crypto libraries'; \
+	    echo 'Version: '$(VERSION); \
+	    echo 'Requires.private: libssl libcrypto'; \
+	    echo 'Libs: -L$${libdir} -loqs'; \
+	    echo 'Cflags: -I$${includedir}' ) > liboqs.pc
+
 openssl.pc:
 	@ ( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
@@ -1008,7 +1060,7 @@ openssl.pc:
 	    echo 'Name: OpenSSL'; \
 	    echo 'Description: Secure Sockets Layer and cryptography libraries and tools'; \
 	    echo 'Version: '$(VERSION); \
-	    echo 'Requires: libssl libcrypto' ) > openssl.pc
+	    echo 'Requires: libssl libcrypto liboqs' ) > openssl.pc
 
 configdata.pm: $(SRCDIR)/Configure $(SRCDIR)/config {- join(" ", @{$config{build_file_templates}}, @{$config{build_infos}}, @{$config{conf_files}}) -}
 	@echo "Detected changed: $?"

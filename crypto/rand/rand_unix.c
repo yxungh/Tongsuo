@@ -35,6 +35,10 @@
 # include <sys/param.h>
 #endif
 
+#if defined(__APPLE__)
+# include <CommonCrypto/CommonRandom.h>
+#endif
+
 #if defined(OPENSSL_SYS_UNIX) || defined(__DJGPP__)
 # include <sys/types.h>
 # include <sys/stat.h>

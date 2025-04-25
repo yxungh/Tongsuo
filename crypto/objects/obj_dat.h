@@ -10,7 +10,12 @@
  */
 
 /* Serialized OID's */
-static const unsigned char so[7630] = {
+#ifndef OPENSSL_NO_OQS
+# define SO_NUM 7778
+#else
+# define SO_NUM 7630
+#endif
+static const unsigned char so[SO_NUM] = {
     0x2A,0x86,0x48,0x86,0xF7,0x0D,                 /* [    0] OBJ_rsadsi */
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x01,            /* [    6] OBJ_pkcs */
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x02,0x02,       /* [   13] OBJ_md2 */
@@ -1062,9 +1067,39 @@ static const unsigned char so[7630] = {
     0x2A,0x81,0x1C,0xCF,0x55,0x01,0x81,0x49,       /* [ 7605] OBJ_zuc */
     0x2A,0x81,0x1C,0xCF,0x55,0x01,0x86,0x21,       /* [ 7613] OBJ_zuc_128_eea3 */
     0x2A,0x81,0x1C,0xCF,0x55,0x01,0x86,0x22,       /* [ 7621] OBJ_zuc_128_eia3 */
+  #ifndef OPENSSL_NO_OQS
+    0x2B,0x06,0x01,0x04,0x01,0x02,0x82,0x0B,0x07,0x04,0x04,  /* [ 7629] OBJ_dilithium2 */
+    0x2B,0xCE,0x0F,0x02,0x07,0x01,                 /* [ 7640] OBJ_p256_dilithium2 */
+    0x2B,0xCE,0x0F,0x02,0x07,0x02,                 /* [ 7646] OBJ_rsa3072_dilithium2 */
+    0x2B,0x06,0x01,0x04,0x01,0x02,0x82,0x0B,0x07,0x06,0x05,  /* [ 7652] OBJ_dilithium3 */
+    0x2B,0xCE,0x0F,0x02,0x07,0x03,                 /* [ 7663] OBJ_p384_dilithium3 */
+    0x2B,0x06,0x01,0x04,0x01,0x02,0x82,0x0B,0x07,0x08,0x07,  /* [ 7669] OBJ_dilithium5 */
+    0x2B,0xCE,0x0F,0x02,0x07,0x04,                 /* [ 7680] OBJ_p521_dilithium5 */
+    0x2B,0xCE,0x0F,0x03,0x06,                      /* [ 7686] OBJ_falcon512 */
+    0x2B,0xCE,0x0F,0x03,0x07,                      /* [ 7691] OBJ_p256_falcon512 */
+    0x2B,0xCE,0x0F,0x03,0x08,                      /* [ 7696] OBJ_rsa3072_falcon512 */
+    0x2B,0xCE,0x0F,0x03,0x09,                      /* [ 7701] OBJ_falcon1024 */
+    0x2B,0xCE,0x0F,0x03,0x0A,                      /* [ 7706] OBJ_p521_falcon1024 */
+    0x2B,0xCE,0x0F,0x06,0x04,0x0D,                 /* [ 7711] OBJ_sphincssha2128fsimple */
+    0x2B,0xCE,0x0F,0x06,0x04,0x0E,                 /* [ 7717] OBJ_p256_sphincssha2128fsimple */
+    0x2B,0xCE,0x0F,0x06,0x04,0x0F,                 /* [ 7723] OBJ_rsa3072_sphincssha2128fsimple */
+    0x2B,0xCE,0x0F,0x06,0x04,0x10,                 /* [ 7729] OBJ_sphincssha2128ssimple */
+    0x2B,0xCE,0x0F,0x06,0x04,0x11,                 /* [ 7735] OBJ_p256_sphincssha2128ssimple */
+    0x2B,0xCE,0x0F,0x06,0x04,0x12,                 /* [ 7741] OBJ_rsa3072_sphincssha2128ssimple */
+    0x2B,0xCE,0x0F,0x06,0x05,0x0A,                 /* [ 7747] OBJ_sphincssha2192fsimple */
+    0x2B,0xCE,0x0F,0x06,0x05,0x0B,                 /* [ 7753] OBJ_p384_sphincssha2192fsimple */
+    0x2B,0xCE,0x0F,0x06,0x07,0x0D,                 /* [ 7759] OBJ_sphincsshake128fsimple */
+    0x2B,0xCE,0x0F,0x06,0x07,0x0E,                 /* [ 7765] OBJ_p256_sphincsshake128fsimple */
+    0x2B,0xCE,0x0F,0x06,0x07,0x0F,                 /* [ 7771] OBJ_rsa3072_sphincsshake128fsimple */
+  #endif
 };
 
-#define NUM_NID 1209
+#ifndef OPENSSL_NO_OQS
+# define NUM_NID 1264
+#else
+# define NUM_NID 1209
+#endif
+
 static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"UNDEF", "undefined", NID_undef},
     {"rsadsi", "RSA Data Security, Inc.", NID_rsadsi, 6, &so[0]},
@@ -2275,9 +2310,72 @@ static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"SSKDF", "sskdf", NID_sskdf},
     {"ZUC-128-EEA3", "zuc-128-eea3", NID_zuc_128_eea3, 8, &so[7613]},
     {"ZUC-128-EIA3", "zuc-128-eia3", NID_zuc_128_eia3, 8, &so[7621]},
+#ifndef OPENSSL_NO_OQS
+    { NULL, NULL, NID_undef },
+    {"frodo640aes", "frodo640aes", NID_frodo640aes},
+    {"frodo640shake", "frodo640shake", NID_frodo640shake},
+    {"frodo976aes", "frodo976aes", NID_frodo976aes},
+    {"frodo976shake", "frodo976shake", NID_frodo976shake},
+    {"frodo1344aes", "frodo1344aes", NID_frodo1344aes},
+    {"frodo1344shake", "frodo1344shake", NID_frodo1344shake},
+    {"kyber512", "kyber512", NID_kyber512},
+    {"kyber768", "kyber768", NID_kyber768},
+    {"kyber1024", "kyber1024", NID_kyber1024},
+    {"bikel1", "bikel1", NID_bikel1},
+    {"bikel3", "bikel3", NID_bikel3},
+    {"bikel5", "bikel5", NID_bikel5},
+    {"hqc128", "hqc128", NID_hqc128},
+    {"hqc192", "hqc192", NID_hqc192},
+    {"hqc256", "hqc256", NID_hqc256},
+    { NULL, NULL, NID_undef },
+    {"p256_frodo640aes", "p256_frodo640aes", NID_p256_frodo640aes},
+    {"p256_frodo640shake", "p256_frodo640shake", NID_p256_frodo640shake},
+    {"p384_frodo976aes", "p384_frodo976aes", NID_p384_frodo976aes},
+    {"p384_frodo976shake", "p384_frodo976shake", NID_p384_frodo976shake},
+    {"p521_frodo1344aes", "p521_frodo1344aes", NID_p521_frodo1344aes},
+    {"p521_frodo1344shake", "p521_frodo1344shake", NID_p521_frodo1344shake},
+    {"p256_kyber512", "p256_kyber512", NID_p256_kyber512},
+    {"p384_kyber768", "p384_kyber768", NID_p384_kyber768},
+    {"p521_kyber1024", "p521_kyber1024", NID_p521_kyber1024},
+    {"p256_bikel1", "p256_bikel1", NID_p256_bikel1},
+    {"p384_bikel3", "p384_bikel3", NID_p384_bikel3},
+    {"p521_bikel5", "p521_bikel5", NID_p521_bikel5},
+    {"p256_hqc128", "p256_hqc128", NID_p256_hqc128},
+    {"p384_hqc192", "p384_hqc192", NID_p384_hqc192},
+    {"p521_hqc256", "p521_hqc256", NID_p521_hqc256},
+    {"dilithium2", "dilithium2", NID_dilithium2, 11, &so[7629]},
+    {"p256_dilithium2", "p256_dilithium2", NID_p256_dilithium2, 6, &so[7640]},
+    {"rsa3072_dilithium2", "rsa3072_dilithium2", NID_rsa3072_dilithium2, 6, &so[7646]},
+    {"dilithium3", "dilithium3", NID_dilithium3, 11, &so[7652]},
+    {"p384_dilithium3", "p384_dilithium3", NID_p384_dilithium3, 6, &so[7663]},
+    {"dilithium5", "dilithium5", NID_dilithium5, 11, &so[7669]},
+    {"p521_dilithium5", "p521_dilithium5", NID_p521_dilithium5, 6, &so[7680]},
+    {"falcon512", "falcon512", NID_falcon512, 5, &so[7686]},
+    {"p256_falcon512", "p256_falcon512", NID_p256_falcon512, 5, &so[7691]},
+    {"rsa3072_falcon512", "rsa3072_falcon512", NID_rsa3072_falcon512, 5, &so[7696]},
+    {"falcon1024", "falcon1024", NID_falcon1024, 5, &so[7701]},
+    {"p521_falcon1024", "p521_falcon1024", NID_p521_falcon1024, 5, &so[7706]},
+    {"sphincssha2128fsimple", "sphincssha2128fsimple", NID_sphincssha2128fsimple, 6, &so[7711]},
+    {"p256_sphincssha2128fsimple", "p256_sphincssha2128fsimple", NID_p256_sphincssha2128fsimple, 6, &so[7717]},
+    {"rsa3072_sphincssha2128fsimple", "rsa3072_sphincssha2128fsimple", NID_rsa3072_sphincssha2128fsimple, 6, &so[7723]},
+    {"sphincssha2128ssimple", "sphincssha2128ssimple", NID_sphincssha2128ssimple, 6, &so[7729]},
+    {"p256_sphincssha2128ssimple", "p256_sphincssha2128ssimple", NID_p256_sphincssha2128ssimple, 6, &so[7735]},
+    {"rsa3072_sphincssha2128ssimple", "rsa3072_sphincssha2128ssimple", NID_rsa3072_sphincssha2128ssimple, 6, &so[7741]},
+    {"sphincssha2192fsimple", "sphincssha2192fsimple", NID_sphincssha2192fsimple, 6, &so[7747]},
+    {"p384_sphincssha2192fsimple", "p384_sphincssha2192fsimple", NID_p384_sphincssha2192fsimple, 6, &so[7753]},
+    {"sphincsshake128fsimple", "sphincsshake128fsimple", NID_sphincsshake128fsimple, 6, &so[7759]},
+    {"p256_sphincsshake128fsimple", "p256_sphincsshake128fsimple", NID_p256_sphincsshake128fsimple, 6, &so[7765]},
+    {"rsa3072_sphincsshake128fsimple", "rsa3072_sphincsshake128fsimple", NID_rsa3072_sphincsshake128fsimple, 6, &so[7771]},
+#endif
 };
 
-#define NUM_SN 1173
+#ifndef OPENSSL_NO_OQS
+# define NUM_SN 1226
+#else
+# define NUM_SN 1173
+#endif
+
+
 static const unsigned int sn_objs[NUM_SN] = {
      364,    /* "AD_DVCS" */
      419,    /* "AES-128-CBC" */
@@ -2576,6 +2674,11 @@ static const unsigned int sn_objs[NUM_SN] = {
      882,    /* "authorityRevocationList" */
       87,    /* "basicConstraints" */
      365,    /* "basicOCSPResponse" */
+#ifndef OPENSSL_NO_OQS
+    1205,    /* "bikel1" */
+    1206,    /* "bikel3" */
+    1207,    /* "bikel5" */
+#endif
      285,    /* "biometricInfo" */
      921,    /* "brainpoolP160r1" */
      922,    /* "brainpoolP160t1" */
@@ -2669,6 +2772,11 @@ static const unsigned int sn_objs[NUM_SN] = {
      939,    /* "dhSinglePass-stdDH-sha384kdf-scheme" */
      940,    /* "dhSinglePass-stdDH-sha512kdf-scheme" */
      920,    /* "dhpublicnumber" */
+#ifndef OPENSSL_NO_OQS
+    1227,    /* "dilithium2" */
+    1230,    /* "dilithium3" */
+    1232,    /* "dilithium5" */
+#endif
      382,    /* "directory" */
      887,    /* "distinguishedName" */
      892,    /* "dmdName" */
@@ -2710,6 +2818,10 @@ static const unsigned int sn_objs[NUM_SN] = {
      126,    /* "extendedKeyUsage" */
      372,    /* "extendedStatus" */
      867,    /* "facsimileTelephoneNumber" */
+#ifndef OPENSSL_NO_OQS
+    1237,    /* "falcon1024" */
+    1234,    /* "falcon512" */
+#endif
      462,    /* "favouriteDrink" */
     1126,    /* "ffdhe2048" */
     1127,    /* "ffdhe3072" */
@@ -2720,6 +2832,14 @@ static const unsigned int sn_objs[NUM_SN] = {
      453,    /* "friendlyCountry" */
      490,    /* "friendlyCountryName" */
      156,    /* "friendlyName" */
+#ifndef OPENSSL_NO_OQS
+    1200,    /* "frodo1344aes" */
+    1201,    /* "frodo1344shake" */
+    1196,    /* "frodo640aes" */
+    1197,    /* "frodo640shake" */
+    1198,    /* "frodo976aes" */
+    1199,    /* "frodo976shake" */
+#endif
      509,    /* "generationQualifier" */
      815,    /* "gost-mac" */
      976,    /* "gost-mac-12" */
@@ -2758,6 +2878,11 @@ static const unsigned int sn_objs[NUM_SN] = {
      473,    /* "homeTelephoneNumber" */
      466,    /* "host" */
      889,    /* "houseIdentifier" */
+#ifndef OPENSSL_NO_OQS
+    1208,    /* "hqc128" */
+    1209,    /* "hqc192" */
+    1210,    /* "hqc256" */
+#endif
      442,    /* "iA5StringSyntax" */
      783,    /* "id-DHBasedMac" */
      824,    /* "id-Gost28147-89-CryptoPro-A-ParamSet" */
@@ -3082,6 +3207,11 @@ static const unsigned int sn_objs[NUM_SN] = {
      956,    /* "jurisdictionST" */
      150,    /* "keyBag" */
       83,    /* "keyUsage" */
+#ifndef OPENSSL_NO_OQS
+    1204,    /* "kyber1024" */
+    1202,    /* "kyber512" */
+    1203,    /* "kyber768" */
+#endif
      477,    /* "lastModifiedBy" */
      476,    /* "lastModifiedTime" */
      157,    /* "localKeyID" */
@@ -3138,6 +3268,32 @@ static const unsigned int sn_objs[NUM_SN] = {
     1141,    /* "oscca" */
      475,    /* "otherMailbox" */
      876,    /* "owner" */
+#ifndef OPENSSL_NO_OQS
+    1221,    /* "p256_bikel1" */
+    1228,    /* "p256_dilithium2" */
+    1235,    /* "p256_falcon512" */
+    1212,    /* "p256_frodo640aes" */
+    1213,    /* "p256_frodo640shake" */
+    1224,    /* "p256_hqc128" */
+    1218,    /* "p256_kyber512" */
+    1240,    /* "p256_sphincssha2128fsimple" */
+    1243,    /* "p256_sphincssha2128ssimple" */
+    1248,    /* "p256_sphincsshake128fsimple" */
+    1222,    /* "p384_bikel3" */
+    1231,    /* "p384_dilithium3" */
+    1214,    /* "p384_frodo976aes" */
+    1215,    /* "p384_frodo976shake" */
+    1225,    /* "p384_hqc192" */
+    1219,    /* "p384_kyber768" */
+    1246,    /* "p384_sphincssha2192fsimple" */
+    1223,    /* "p521_bikel5" */
+    1233,    /* "p521_dilithium5" */
+    1238,    /* "p521_falcon1024" */
+    1216,    /* "p521_frodo1344aes" */
+    1217,    /* "p521_frodo1344shake" */
+    1226,    /* "p521_hqc256" */
+    1220,    /* "p521_kyber1024" */
+#endif
      489,    /* "pagerTelephoneNumber" */
      374,    /* "path" */
      112,    /* "pbeWithMD5AndCast5CBC" */
@@ -3201,6 +3357,14 @@ static const unsigned int sn_objs[NUM_SN] = {
      877,    /* "roleOccupant" */
      448,    /* "room" */
      463,    /* "roomNumber" */
+#ifndef OPENSSL_NO_OQS
+    1227,    /* "rsa3072_bikel4" */
+    1229,    /* "rsa3072_dilithium2" */
+    1236,    /* "rsa3072_falcon512" */
+    1241,    /* "rsa3072_sphincssha2128fsimple" */
+    1244,    /* "rsa3072_sphincssha2128ssimple" */
+    1249,    /* "rsa3072_sphincsshake128fsimple" */
+#endif
        6,    /* "rsaEncryption" */
      644,    /* "rsaOAEPEncryptionSET" */
      377,    /* "rsaSignature" */
@@ -3392,6 +3556,15 @@ static const unsigned int sn_objs[NUM_SN] = {
      496,    /* "singleLevelQuality" */
     1142,    /* "sm-scheme" */
      387,    /* "snmpv2" */
+#ifndef OPENSSL_NO_OQS
+    1228,    /* "sphincsharaka256frobust" */
+    1225,    /* "sphincsharaka256srobust" */
+    1232
+    1239,    /* "sphincssha2128fsimple" */
+    1242,    /* "sphincssha2128ssimple" */
+    1245,    /* "sphincssha2192fsimple" */
+    1247,    /* "sphincsshake128fsimple" */
+#endif
      660,    /* "street" */
       85,    /* "subjectAltName" */
      769,    /* "subjectDirectoryAttributes" */
@@ -3454,7 +3627,12 @@ static const unsigned int sn_objs[NUM_SN] = {
     1093,    /* "x509ExtAdmission" */
 };
 
-#define NUM_LN 1173
+#ifndef OPENSSL_NO_OQS
+# define NUM_LN 1226
+#else
+# define NUM_LN 1173
+#endif
+
 static const unsigned int ln_objs[NUM_LN] = {
      363,    /* "AD Time Stamping" */
      405,    /* "ANSI X9.62" */
@@ -3728,6 +3906,11 @@ static const unsigned int ln_objs[NUM_LN] = {
       93,    /* "bf-cfb" */
       92,    /* "bf-ecb" */
       94,    /* "bf-ofb" */
+#ifndef OPENSSL_NO_OQS
+    1205,    /* "bikel1" */
+    1206,    /* "bikel3" */
+    1207,    /* "bikel5" */
+#endif
     1056,    /* "blake2b512" */
     1057,    /* "blake2s256" */
      921,    /* "brainpoolP160r1" */
@@ -3864,6 +4047,11 @@ static const unsigned int ln_objs[NUM_LN] = {
      938,    /* "dhSinglePass-stdDH-sha256kdf-scheme" */
      939,    /* "dhSinglePass-stdDH-sha384kdf-scheme" */
      940,    /* "dhSinglePass-stdDH-sha512kdf-scheme" */
+#ifndef OPENSSL_NO_OQS
+    1227,    /* "dilithium2" */
+    1230,    /* "dilithium3" */
+    1232,    /* "dilithium5" */
+#endif
       11,    /* "directory services (X.500)" */
      378,    /* "directory services - algorithms" */
      887,    /* "distinguishedName" */
@@ -3911,6 +4099,10 @@ static const unsigned int ln_objs[NUM_LN] = {
      885,    /* "enhancedSearchGuide" */
       56,    /* "extendedCertificateAttributes" */
      867,    /* "facsimileTelephoneNumber" */
+#ifndef OPENSSL_NO_OQS
+    1237,    /* "falcon1024" */
+    1234,    /* "falcon512" */
+#endif
      462,    /* "favouriteDrink" */
     1126,    /* "ffdhe2048" */
     1127,    /* "ffdhe3072" */
@@ -3920,6 +4112,14 @@ static const unsigned int ln_objs[NUM_LN] = {
      453,    /* "friendlyCountry" */
      490,    /* "friendlyCountryName" */
      156,    /* "friendlyName" */
+#ifndef OPENSSL_NO_OQS
+    1200,    /* "frodo1344aes" */
+    1201,    /* "frodo1344shake" */
+    1196,    /* "frodo640aes" */
+    1197,    /* "frodo640shake" */
+    1198,    /* "frodo976aes" */
+    1199,    /* "frodo976shake" */
+#endif
      631,    /* "generate cryptogram" */
      509,    /* "generationQualifier" */
      601,    /* "generic cryptogram" */
@@ -3956,6 +4156,11 @@ static const unsigned int ln_objs[NUM_LN] = {
      473,    /* "homeTelephoneNumber" */
      466,    /* "host" */
      889,    /* "houseIdentifier" */
+#ifndef OPENSSL_NO_OQS
+    1208,    /* "hqc128" */
+    1209,    /* "hqc192" */
+    1210,    /* "hqc256" */
+#endif
      442,    /* "iA5StringSyntax" */
      381,    /* "iana" */
      824,    /* "id-Gost28147-89-CryptoPro-A-ParamSet" */
@@ -4239,6 +4444,11 @@ static const unsigned int ln_objs[NUM_LN] = {
     1198,    /* "kx-sm2" */
     1199,    /* "kx-sm2dhe" */
     1044,    /* "kx-srp" */
+#ifndef OPENSSL_NO_OQS
+    1204,    /* "kyber1024" */
+    1202,    /* "kyber512" */
+    1203,    /* "kyber768" */
+#endif
      477,    /* "lastModifiedBy" */
      476,    /* "lastModifiedTime" */
      157,    /* "localKeyID" */
@@ -4281,6 +4491,32 @@ static const unsigned int ln_objs[NUM_LN] = {
     1141,    /* "oscca" */
      475,    /* "otherMailbox" */
      876,    /* "owner" */
+#ifndef OPENSSL_NO_OQS
+    1221,    /* "p256_bikel1" */
+    1228,    /* "p256_dilithium2" */
+    1235,    /* "p256_falcon512" */
+    1212,    /* "p256_frodo640aes" */
+    1213,    /* "p256_frodo640shake" */
+    1224,    /* "p256_hqc128" */
+    1218,    /* "p256_kyber512" */
+    1240,    /* "p256_sphincssha2128fsimple" */
+    1243,    /* "p256_sphincssha2128ssimple" */
+    1248,    /* "p256_sphincsshake128fsimple" */
+    1222,    /* "p384_bikel3" */
+    1231,    /* "p384_dilithium3" */
+    1214,    /* "p384_frodo976aes" */
+    1215,    /* "p384_frodo976shake" */
+    1225,    /* "p384_hqc192" */
+    1219,    /* "p384_kyber768" */
+    1246,    /* "p384_sphincssha2192fsimple" */
+    1223,    /* "p521_bikel5" */
+    1233,    /* "p521_dilithium5" */
+    1238,    /* "p521_falcon1024" */
+    1216,    /* "p521_frodo1344aes" */
+    1217,    /* "p521_frodo1344shake" */
+    1226,    /* "p521_hqc256" */
+    1220,    /* "p521_kyber1024" */
+#endif
      935,    /* "pSpecified" */
      489,    /* "pagerTelephoneNumber" */
      782,    /* "password based MAC" */
@@ -4368,6 +4604,13 @@ static const unsigned int ln_objs[NUM_LN] = {
      448,    /* "room" */
      463,    /* "roomNumber" */
       19,    /* "rsa" */
+#ifndef OPENSSL_NO_OQS
+    1229,    /* "rsa3072_dilithium2" */
+    1236,    /* "rsa3072_falcon512" */
+    1241,    /* "rsa3072_sphincssha2128fsimple" */
+    1244,    /* "rsa3072_sphincssha2128ssimple" */
+    1249,    /* "rsa3072_sphincsshake128fsimple" */
+#endif
        6,    /* "rsaEncryption" */
      644,    /* "rsaOAEPEncryptionSET" */
      377,    /* "rsaSignature" */
@@ -4578,6 +4821,12 @@ static const unsigned int ln_objs[NUM_LN] = {
     1133,    /* "sm4-ecb" */
     1195,    /* "sm4-gcm" */
     1135,    /* "sm4-ofb" */
+#ifndef OPENSSL_NO_OQS
+    1239,    /* "sphincssha2128fsimple" */
+    1242,    /* "sphincssha2128ssimple" */
+    1245,    /* "sphincssha2192fsimple" */
+    1247,    /* "sphincsshake128fsimple" */
+#endif
     1203,    /* "sshkdf" */
     1206,    /* "sskdf" */
       16,    /* "stateOrProvinceName" */
@@ -4631,7 +4880,12 @@ static const unsigned int ln_objs[NUM_LN] = {
     1208,    /* "zuc-128-eia3" */
 };
 
-#define NUM_OBJ 1057
+#ifndef OPENSSL_NO_OQS
+# define NUM_OBJ 1080
+#else
+# define NUM_OBJ 1057
+#endif
+
 static const unsigned int obj_objs[NUM_OBJ] = {
        0,    /* OBJ_undef                        0 */
      181,    /* OBJ_iso                          1 */
@@ -4939,6 +5193,13 @@ static const unsigned int obj_objs[NUM_OBJ] = {
      732,    /* OBJ_sect409r1                    1 3 132 0 37 */
      733,    /* OBJ_sect571k1                    1 3 132 0 38 */
      734,    /* OBJ_sect571r1                    1 3 132 0 39 */
+#ifndef OPENSSL_NO_OQS
+    1234,    /* OBJ_falcon512                    1 3 9999 3 6 */
+    1235,    /* OBJ_p256_falcon512               1 3 9999 3 7 */
+    1236,    /* OBJ_rsa3072_falcon512            1 3 9999 3 8 */
+    1237,    /* OBJ_falcon1024                   1 3 9999 3 9 */
+    1238,    /* OBJ_p521_falcon1024              1 3 9999 3 10 */
+#endif
      624,    /* OBJ_set_rootKeyThumb             2 23 42 3 0 0 */
      625,    /* OBJ_set_addPolicy                2 23 42 3 0 1 */
      626,    /* OBJ_setAttr_Token_EMV            2 23 42 3 2 1 */
@@ -4989,6 +5250,23 @@ static const unsigned int obj_objs[NUM_OBJ] = {
      943,    /* OBJ_dhSinglePass_cofactorDH_sha256kdf_scheme 1 3 132 1 14 1 */
      944,    /* OBJ_dhSinglePass_cofactorDH_sha384kdf_scheme 1 3 132 1 14 2 */
      945,    /* OBJ_dhSinglePass_cofactorDH_sha512kdf_scheme 1 3 132 1 14 3 */
+#ifndef OPENSSL_NO_OQS
+    1228,    /* OBJ_p256_dilithium2              1 3 9999 2 7 1 */
+    1229,    /* OBJ_rsa3072_dilithium2           1 3 9999 2 7 2 */
+    1231,    /* OBJ_p384_dilithium3              1 3 9999 2 7 3 */
+    1233,    /* OBJ_p521_dilithium5              1 3 9999 2 7 4 */
+    1239,    /* OBJ_sphincssha2128fsimple        1 3 9999 6 4 13 */
+    1240,    /* OBJ_p256_sphincssha2128fsimple   1 3 9999 6 4 14 */
+    1241,    /* OBJ_rsa3072_sphincssha2128fsimple 1 3 9999 6 4 15 */
+    1242,    /* OBJ_sphincssha2128ssimple        1 3 9999 6 4 16 */
+    1243,    /* OBJ_p256_sphincssha2128ssimple   1 3 9999 6 4 17 */
+    1244,    /* OBJ_rsa3072_sphincssha2128ssimple 1 3 9999 6 4 18 */
+    1245,    /* OBJ_sphincssha2192fsimple        1 3 9999 6 5 10 */
+    1246,    /* OBJ_p384_sphincssha2192fsimple   1 3 9999 6 5 11 */
+    1247,    /* OBJ_sphincsshake128fsimple       1 3 9999 6 7 13 */
+    1248,    /* OBJ_p256_sphincsshake128fsimple  1 3 9999 6 7 14 */
+    1249,    /* OBJ_rsa3072_sphincsshake128fsimple 1 3 9999 6 7 15 */
+#endif
      631,    /* OBJ_setAttr_GenCryptgrm          2 23 42 3 3 3 1 */
      632,    /* OBJ_setAttr_T2Enc                2 23 42 3 3 4 1 */
      633,    /* OBJ_setAttr_T2cleartxt           2 23 42 3 3 4 2 */
@@ -5673,6 +5951,11 @@ static const unsigned int obj_objs[NUM_OBJ] = {
      153,    /* OBJ_crlBag                       1 2 840 113549 1 12 10 1 4 */
      154,    /* OBJ_secretBag                    1 2 840 113549 1 12 10 1 5 */
      155,    /* OBJ_safeContentsBag              1 2 840 113549 1 12 10 1 6 */
+#ifndef OPENSSL_NO_OQS
+    1227,    /* OBJ_dilithium2                   1 3 6 1 4 1 2 267 7 4 4 */
+    1230,    /* OBJ_dilithium3                   1 3 6 1 4 1 2 267 7 6 5 */
+    1232,    /* OBJ_dilithium5                   1 3 6 1 4 1 2 267 7 8 7 */
+#endif
       34,    /* OBJ_idea_cbc                     1 3 6 1 4 1 188 7 1 1 2 */
      955,    /* OBJ_jurisdictionLocalityName     1 3 6 1 4 1 311 60 2 1 1 */
      956,    /* OBJ_jurisdictionStateOrProvinceName 1 3 6 1 4 1 311 60 2 1 2 */

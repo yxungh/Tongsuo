@@ -16,6 +16,10 @@
 #define ECDH_SECONDS    10
 #define EdDSA_SECONDS   10
 #define SM2_SECONDS     10
+#ifndef OPENSSL_NO_OQS
+# define OQSKEM_SECONDS  10
+# define OQSSIG_SECONDS  10
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -104,6 +108,18 @@
 #ifndef OPENSSL_NO_SM4
 # include <crypto/sm4.h>
 #endif
+#ifndef OPENSSL_NO_OQS
+# ifndef OPENSSL_NO_OQSKEM
+# include <oqs/oqs.h>
+extern const char *OQSKEM_options(void);
+# endif
+
+#ifndef OPENSSL_NO_OQSSIG
+# include <oqs/oqs.h>
+extern const char *OQSSIG_options(void);
+extern int oqs_size(const EVP_PKEY *pkey);
+# endif
+#endif
 #include <openssl/modes.h>
 
 #ifndef HAVE_FORK
@@ -132,6 +148,10 @@ typedef struct openssl_speed_sec_st {
     int ecdh;
     int eddsa;
     int sm2;
+#ifndef OPENSSL_NO_OQS
+    int oqskem;
+    int oqssig;
+#endif
 } openssl_speed_sec_t;
 
 static volatile int run = 0;
@@ -211,6 +231,11 @@ static int do_multi(int multi, int size_num);
 
 static const int lengths_list[] = {
     16, 64, 256, 1024, 8 * 1024, 16 * 1024
+#ifndef OPENSSL_NO_OQS
+# ifndef OPENSSL_NO_OQSSIG
+  , 100 * 1024 // OQS note: need larger buffer for OQS signatures
+# endif
+#endif
 };
 static const int *lengths = lengths_list;
 
@@ -612,6 +637,20 @@ static OPT_PAIR eddsa_choices[] = {
 
 static double eddsa_results[EdDSA_NUM][2];    /* 2 ops: sign then verify */
 
+#ifndef OPENSSL_NO_OQS
+# ifndef OPENSSL_NO_OQSKEM
+# define OQSKEM_NUM      OQS_OPENSSL_KEM_algs_length 
+static OPT_PAIR oqskem_choices[OQSKEM_NUM];
+static double oqskem_results[OQSKEM_NUM][3];
+# endif
+
+# ifndef OPENSSL_NO_OQSSIG
+# define OQSSIG_NUM      OQS_OPENSSL_SIG_algs_length 
+static OPT_PAIR oqssig_choices[OQSSIG_NUM];
+static double oqssig_results[OQSSIG_NUM][3]; // generate,sign,verify
+# endif
+#endif
+
 # ifndef OPENSSL_NO_SM2
 #  define R_EC_CURVESM2        0
 static OPT_PAIR sm2_choices[] = {
@@ -661,6 +700,14 @@ typedef struct loopargs_st {
     unsigned char *secret_a;
     unsigned char *secret_b;
     size_t outlen[EC_NUM];
+#endif
+
+#ifndef OPENSSL_NO_OQS
+# ifndef OPENSSL_NO_OQSSIG
+    EC_KEY *oqssig[OQSSIG_NUM];
+    EVP_MD_CTX *oqssig_ctx[OQSSIG_NUM];
+    size_t oqs_outlen[OQSSIG_NUM];
+# endif
 #endif
     EVP_CIPHER_CTX *ctx;
     HMAC_CTX *hctx;
@@ -1309,6 +1356,58 @@ static int EdDSA_verify_loop(void *args)
     return count;
 }
 
+#ifndef OPENSSL_NO_OQS
+# ifndef OPENSSL_NO_OQSSIG
+static long oqssig_c[OQSSIG_NUM][2];
+static int OQS_sign_loop(void *args)
+{
+    loopargs_t *tempargs = *(loopargs_t **) args;
+    unsigned char *buf = tempargs->buf;
+    EVP_MD_CTX **oqsctx = tempargs->oqssig_ctx;
+    unsigned char *oqssig = tempargs->buf2;
+    size_t sigsize_store = tempargs->sigsize;
+    int ret, count;
+
+    for (count = 0; COND(oqssig_c[testnum][0]); count++) {
+        /* OQS algs destroy this so we must retain it for repeated runs */
+        sigsize_store = tempargs->sigsize;
+
+        ret = EVP_DigestSign(oqsctx[testnum], oqssig, &sigsize_store, buf, 20);
+        if (ret == 0) {
+            BIO_printf(bio_err, "OQS sign failure\n");
+            ERR_print_errors(bio_err);
+            count = -1;
+            break;
+        }
+    }
+    // return final &tempargs->sigsize so verify finds a good value
+    tempargs->sigsize = sigsize_store; 
+    return count;
+}
+
+static int OQS_verify_loop(void *args)
+{
+    loopargs_t *tempargs = *(loopargs_t **) args;
+    unsigned char *buf = tempargs->buf;
+    EVP_MD_CTX **oqsctx = tempargs->oqssig_ctx;
+    unsigned char *oqssig = tempargs->buf2;
+    size_t oqssigsize = tempargs->sigsize;
+    int ret, count;
+
+    for (count = 0; COND(oqssig_c[testnum][1]); count++) {
+        ret = EVP_DigestVerify(oqsctx[testnum], oqssig, oqssigsize, buf, 20);
+        if (ret != 1) {
+            BIO_printf(bio_err, "OQS verify failure\n");
+            ERR_print_errors(bio_err);
+            count = -1;
+            break;
+        }
+    }
+    return count;
+}
+# endif
+#endif
+
 # ifndef OPENSSL_NO_SM2
 static long sm2_c[SM2_NUM][2];
 static int SM2_sign_loop(void *args)
@@ -1556,7 +1655,11 @@ int speed_main(int argc, char **argv)
 #endif
     openssl_speed_sec_t seconds = { SECONDS, RSA_SECONDS, DSA_SECONDS,
                                     ECDSA_SECONDS, ECDH_SECONDS,
-                                    EdDSA_SECONDS, SM2_SECONDS };
+                                    EdDSA_SECONDS, SM2_SECONDS ,
+#ifndef OPENSSL_NO_OQS
+                                    OQSKEM_SECONDS, OQSSIG_SECONDS
+#endif
+                                    };
 
     /* What follows are the buffers and key material. */
 #ifndef OPENSSL_NO_RC5
@@ -1711,6 +1814,45 @@ int speed_main(int argc, char **argv)
 # endif
 #endif                          /* ndef OPENSSL_NO_EC */
 
+#ifndef OPENSSL_NO_OQS
+
+#ifndef OPENSSL_NO_OQSKEM
+    const char *oqskem_method_names[OQSKEM_NUM];
+    OQS_KEM *oqskem_kem[OQSKEM_NUM];
+    unsigned char *oqskem_secret_key;
+    unsigned char *oqskem_public_key;
+    unsigned char *oqskem_ciphertext;
+    unsigned char *oqskem_shared_secret_e;
+    unsigned char *oqskem_shared_secret_d;
+    long oqskem_c[OQSKEM_NUM][3];
+    int oqskem_doit[OQSKEM_NUM] = { 0 };
+
+    /* populate oqskem_choices */
+    int oqskemcnt = 0;
+    int* oqssl_kem_nids_list = get_oqssl_kem_nids(); 
+    for (oqskemcnt = 0; oqskemcnt < OQSKEM_NUM; ++oqskemcnt) {
+        oqskem_choices[oqskemcnt].name = OBJ_nid2sn(oqssl_kem_nids_list[oqskemcnt]);
+        oqskem_choices[oqskemcnt].retval = oqskemcnt;
+        oqskem_kem[oqskemcnt] = NULL;
+        oqskem_method_names[oqskemcnt] = oqskem_choices[oqskemcnt].name; 
+    }
+#endif /* ndef OPENSSL_NO_OQSKEM */
+
+#ifndef OPENSSL_NO_OQSSIG
+    int oqssig_doit[OQSSIG_NUM] = { 0 };
+
+    /* populate oqssig_choices */
+    int oqssigcnt = 0;
+    int* oqssl_sig_nids_list = get_oqssl_sig_nids(); 
+    for (oqssigcnt = 0; oqssigcnt < OQSSIG_NUM; ++oqssigcnt) {
+        oqssig_choices[oqssigcnt].name = OBJ_nid2sn(oqssl_sig_nids_list[oqssigcnt]);
+        oqssig_choices[oqssigcnt].retval = oqssigcnt;
+    }
+#endif /* ndef OPENSSL_NO_OQSSIG */
+
+#endif
+
+
     prog = opt_init(argc, argv, speed_options);
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
@@ -1802,7 +1944,11 @@ int speed_main(int argc, char **argv)
         case OPT_SECONDS:
             seconds.sym = seconds.rsa = seconds.dsa = seconds.ecdsa
                         = seconds.ecdh = seconds.eddsa
-                        = seconds.sm2 = atoi(opt_arg());
+                        = seconds.sm2 
+#ifndef OPENSSL_NO_OQS
+                        = seconds.oqskem = seconds.oqssig
+#endif
+                        = atoi(opt_arg());
             break;
         case OPT_BYTES:
             lengths_single = atoi(opt_arg());
@@ -1907,6 +2053,41 @@ int speed_main(int argc, char **argv)
         }
 # endif
 #endif
+
+#ifndef OPENSSL_NO_OQS
+
+#ifndef OPENSSL_NO_OQSKEM
+        if (strcmp(*argv, "oqskem") == 0) {
+            for (loop = 0; loop < OSSL_NELEM(oqskem_doit); loop++)
+                oqskem_doit[loop] = OQS_KEM_alg_is_enabled(get_oqs_alg_name(oqssl_kem_nids_list[loop]));
+            continue;
+        }
+        if (found(*argv, oqskem_choices, &i)) {
+            oqskem_doit[i] = 2*OQS_KEM_alg_is_enabled(get_oqs_alg_name(oqssl_kem_nids_list[i]));
+            continue;
+        }
+#endif
+#ifndef OPENSSL_NO_OQSSIG
+        if (strcmp(*argv, "oqssig") == 0) {
+            for (loop = 0; loop < OSSL_NELEM(oqssig_doit); loop++)
+                oqssig_doit[loop] = OQS_SIG_alg_is_enabled(get_oqs_alg_name(oqssl_sig_nids_list[loop]));
+            continue;
+        }
+        if (found(*argv, oqssig_choices, &i)) {
+            oqssig_doit[i] = 2*OQS_SIG_alg_is_enabled(get_oqs_alg_name(oqssl_sig_nids_list[i]));
+            continue;
+        }
+#endif
+
+#ifndef OPENSSL_NO_OQSKEM
+        BIO_printf(bio_err, "OQSKEM config: %s\n", OQSKEM_options());
+#endif
+#ifndef OPENSSL_NO_OQSSIG
+        BIO_printf(bio_err, "OQSSIG config: %s\n", OQSSIG_options());
+#endif
+
+#endif
+
         BIO_printf(bio_err, "%s: Unknown algorithm %s\n", prog, *argv);
         goto end;
     }
@@ -2014,6 +2195,20 @@ int speed_main(int argc, char **argv)
 # endif
 #endif
     }
+
+#ifndef OPENSSL_NO_OQS
+
+#ifndef OPENSSL_NO_OQSKEM
+    	for (i = 0; i < OQSKEM_NUM; i++) 
+            oqskem_doit[i] = OQS_KEM_alg_is_enabled(get_oqs_alg_name(oqssl_kem_nids_list[i]));
+#endif
+#ifndef OPENSSL_NO_OQSSIG
+    	for (i = 0; i < OQSSIG_NUM; i++) 
+            oqssig_doit[i] = OQS_SIG_alg_is_enabled(get_oqs_alg_name(oqssl_sig_nids_list[i]));
+#endif
+
+#endif 
+
     for (i = 0; i < ALGOR_NUM; i++)
         if (doit[i])
             pr_header++;
@@ -2323,6 +2518,26 @@ int speed_main(int argc, char **argv)
     sm2_c[R_EC_SM2P256][0] = count / 1800;
 #   endif
 #  endif
+
+#ifndef OPENSSL_NO_OQS
+#ifndef OPENSSL_NO_OQSKEM
+    for (i = 0; i <= OQSKEM_NUM; i++) {
+        oqskem_c[i][0] = count/1000;
+        oqskem_c[i][1] = count/1000;
+    }
+    oqskem_secret_key = NULL;
+    oqskem_public_key = NULL;
+    oqskem_ciphertext = NULL;
+    oqskem_shared_secret_d = NULL;
+    oqskem_shared_secret_e = NULL;
+#endif
+#ifndef OPENSSL_NO_OQSSIG
+    for (i = 0; i <= OQSSIG_NUM; i++) {
+        oqssig_c[i][0] = count/1000;
+        oqssig_c[i][1] = count/1000;
+    }
+#endif
+#endif
 
 # else
 /* not worth fixing */
@@ -3584,6 +3799,193 @@ int speed_main(int argc, char **argv)
 # endif                         /* OPENSSL_NO_SM2 */
 
 #endif                          /* OPENSSL_NO_EC */
+
+#ifndef OPENSSL_NO_OQS
+#ifndef OPENSSL_NO_OQSKEM
+    OQS_randombytes_custom_algorithm((void (*)(uint8_t *, size_t)) &RAND_bytes);
+    int j;
+    for (j = 0; j < OQSKEM_NUM; j++) {
+        if (!oqskem_doit[j])
+            continue;
+
+        oqskem_kem[j] = OQS_KEM_new(get_oqs_alg_name(oqssl_kem_nids_list[j]));
+        if (oqskem_kem[j] == NULL) {
+            BIO_printf(bio_err,"OQSKEM failure - OQS_KEM_new(%s).\n", get_oqs_alg_name(oqssl_kem_nids_list[j]));
+            ERR_print_errors(bio_err);
+            rsa_count=1;
+        } else {
+            oqskem_public_key = malloc(oqskem_kem[j]->length_public_key);
+            oqskem_secret_key = malloc(oqskem_kem[j]->length_secret_key);
+            oqskem_ciphertext = malloc(oqskem_kem[j]->length_ciphertext);
+            oqskem_shared_secret_d = malloc(oqskem_kem[j]->length_shared_secret);
+            oqskem_shared_secret_e = malloc(oqskem_kem[j]->length_shared_secret);
+
+            /* time OQSKEM keypair operation */
+            char lbl[1000];
+            sprintf(lbl, "%s (OQS KEM %s)", oqskem_method_names[j], oqskem_kem[j]->method_name);
+            // XXX TBR TBD oqskem_method_names[j] = strdup(oqskem_kem[j]->method_name);
+            pkey_print_message(lbl, "keypair", oqskem_c[j][0], 0, seconds.oqskem);
+            Time_F(START);
+            for (count = 0, run = 1; COND(oqskem_c[j][0]); count++) {
+                OQS_KEM_keypair(oqskem_kem[j], oqskem_public_key, oqskem_secret_key);
+            }
+            d = Time_F(STOP);
+            sprintf(lbl, "%%ld %s keypair in %%.2fs\n", oqskem_method_names[j]);
+            BIO_printf(bio_err, mr ? "+R9:%ld:%.2f\n" : lbl, count, d);
+            oqskem_results[j][0] = d / (double)count;
+            rsa_count = count;
+
+            /* time OQSKEM encaps operation */
+            sprintf(lbl, "%s", oqskem_method_names[j]);
+            pkey_print_message(lbl, "encaps", oqskem_c[j][1], 0, seconds.oqskem);
+            Time_F(START);
+            for (count = 0, run = 1; COND(oqskem_c[j][1]); count++) {
+                OQS_KEM_encaps(oqskem_kem[j], oqskem_ciphertext, oqskem_shared_secret_e, oqskem_public_key);
+            }
+            d = Time_F(STOP);
+            sprintf(lbl, "%%ld %s encaps in %%.2fs\n", oqskem_method_names[j]);
+            BIO_printf(bio_err, mr ? "+R10:%ld:%.2f\n" : lbl, count, d);
+            oqskem_results[j][1] = d / (double)count;
+            rsa_count = count;
+
+            /* time OQSKEM decaps operation */
+            sprintf(lbl, "%s", oqskem_method_names[j]);
+            pkey_print_message(lbl, "decaps", oqskem_c[j][2], 0, seconds.oqskem);
+            Time_F(START);
+            for (count = 0, run = 1; COND(oqskem_c[j][2]); count++) {
+                OQS_KEM_decaps(oqskem_kem[j], oqskem_shared_secret_d, oqskem_ciphertext, oqskem_secret_key);
+            }
+            d = Time_F(STOP);
+            sprintf(lbl, "%%ld %s decaps in %%.2fs\n", oqskem_method_names[j]);
+            BIO_printf(bio_err, mr ? "+R11:%ld:%.2f\n" : lbl, count, d);
+            oqskem_results[j][2] = d / (double)count;
+            rsa_count = count;
+            OQS_MEM_insecure_free(oqskem_public_key);
+            OQS_MEM_insecure_free(oqskem_ciphertext);
+            OQS_MEM_secure_free(oqskem_secret_key, oqskem_kem[j]->length_secret_key);
+            OQS_MEM_secure_free(oqskem_shared_secret_d, oqskem_kem[j]->length_shared_secret);
+            OQS_MEM_secure_free(oqskem_shared_secret_e, oqskem_kem[j]->length_shared_secret);
+        }
+        OQS_KEM_free(oqskem_kem[j]);
+
+        if (rsa_count <= 1) {
+            /* if longer than 10s, don't do any more */
+            for (j++; j < OQSKEM_NUM; j++)
+                oqskem_doit[j] = 0;
+        }
+    }
+#endif /* ndef OPENSSL_NO_OQSKEM */
+
+#ifndef OPENSSL_NO_OQSSIG
+    for (testnum = 0; testnum < OQSSIG_NUM; testnum++) {
+        int st = 1;
+        EVP_PKEY *oqssig_pkey = NULL;
+        EVP_PKEY_CTX *oqssig_pctx = NULL;
+
+        if (!oqssig_doit[testnum])
+            continue;           /* Ignore algorithm */
+        for (i = 0; i < loopargs_len; i++) {
+            loopargs[i].oqssig_ctx[testnum] = EVP_MD_CTX_new();
+            if (loopargs[i].oqssig_ctx[testnum] == NULL) {
+                st = 0;
+                break;
+            }
+
+            if ((oqssig_pctx = EVP_PKEY_CTX_new_id(oqssl_sig_nids_list[testnum], NULL))
+                    == NULL
+                || !EVP_PKEY_keygen_init(oqssig_pctx)
+                || !EVP_PKEY_keygen(oqssig_pctx, &oqssig_pkey)) {
+                st = 0;
+                EVP_PKEY_CTX_free(oqssig_pctx);
+                break;
+            }
+            EVP_PKEY_CTX_free(oqssig_pctx);
+
+            if (!EVP_DigestSignInit(loopargs[i].oqssig_ctx[testnum], NULL, NULL,
+                                    NULL, oqssig_pkey)) {
+                st = 0;
+                EVP_PKEY_free(oqssig_pkey);
+                break;
+            }
+            EVP_PKEY_free(oqssig_pkey);
+        }
+        if (st == 0) {
+            BIO_printf(bio_err, "OQSSIG failure.\n");
+            ERR_print_errors(bio_err);
+            rsa_count = 1;
+        } else {
+            for (i = 0; i < loopargs_len; i++) {
+                /* Perform signature test */
+                loopargs[i].sigsize = oqs_size(oqssig_pkey);
+                st = EVP_DigestSign(loopargs[i].oqssig_ctx[testnum],
+                                    loopargs[i].buf2, &loopargs[i].sigsize,
+                                    loopargs[i].buf, 20);
+                // reset size for repeated sign runs as OQS sign may have destroyed value
+                loopargs[i].sigsize = oqs_size(oqssig_pkey);
+                if (st == 0)
+                    break;
+            }
+            if (st == 0) {
+                BIO_printf(bio_err,
+                           "OQS sign failure.  No OQS sign will be done.\n");
+                ERR_print_errors(bio_err);
+                rsa_count = 1;
+            } else {
+                pkey_print_message("sign", OBJ_nid2sn(oqssl_sig_nids_list[testnum]),
+                                   oqssig_c[testnum][0],
+                                   0, seconds.oqssig);
+                Time_F(START);
+                count = run_benchmark(async_jobs, OQS_sign_loop, loopargs);
+                d = Time_F(STOP);
+
+                BIO_printf(bio_err,
+                           mr ? "+R8:%ld:%s:%.2f\n" :
+                           "%ld %s signs in %.2fs \n",
+                           count,
+                           OBJ_nid2sn(oqssl_sig_nids_list[testnum]) , d);
+                oqssig_results[testnum][0] = (double)count / d;
+                rsa_count = count;
+            }
+
+            /* Perform verification test */
+            for (i = 0; i < loopargs_len; i++) {
+                st = EVP_DigestVerify(loopargs[i].oqssig_ctx[testnum],
+                                      loopargs[i].buf2, loopargs[i].sigsize,
+                                      loopargs[i].buf, 20);
+                if (st != 1)
+                    break;
+            }
+            if (st != 1) {
+                BIO_printf(bio_err,
+                           "OQS verify failure.  No OQS verify will be done.\n");
+                ERR_print_errors(bio_err);
+                oqssig_doit[testnum] = 0;
+            } else {
+                pkey_print_message("verify", OBJ_nid2sn(oqssl_sig_nids_list[testnum]),
+                                   oqssig_c[testnum][1],
+                                   0, seconds.oqssig);
+                Time_F(START);
+                count = run_benchmark(async_jobs, OQS_verify_loop, loopargs);
+                d = Time_F(STOP);
+                BIO_printf(bio_err,
+                           mr ? "+R9:%ld:%s:%.2f\n"
+                           : "%ld %s verify in %.2fs\n",
+                           count, 
+                           OBJ_nid2sn(oqssl_sig_nids_list[testnum]), d);
+                oqssig_results[testnum][1] = (double)count / d;
+            }
+
+            if (rsa_count <= 1) {
+                /* if longer than 10s, don't do any more */
+                for (testnum++; testnum < OQSSIG_NUM; testnum++)
+                    oqssig_doit[testnum] = 0;
+            }
+        }
+    }
+
+#endif /* ndef OPENSSL_NO_OQSSIG */
+#endif
+
 #ifndef NO_FORK
  show_res:
 #endif
@@ -3607,6 +4009,14 @@ int speed_main(int argc, char **argv)
 #endif
 #ifndef OPENSSL_NO_BF
         printf("%s ", BF_options());
+#endif
+#ifndef OPENSSL_NO_OQS
+# ifndef OPENSSL_NO_OQSKEM
+        printf("%s ", OQSKEM_options());
+# endif
+# ifndef OPENSSL_NO_OQSSIG
+        printf("%s ", OQSSIG_options());
+# endif
 #endif
         printf("\n%s\n", OpenSSL_version(OPENSSL_CFLAGS));
     }
@@ -3758,6 +4168,50 @@ int speed_main(int argc, char **argv)
 # endif
 #endif
 
+#ifndef OPENSSL_NO_OQS
+# ifndef OPENSSL_NO_OQSKEM
+    testnum = 1;
+    for (k = 0; k < OQSKEM_NUM; k++) {
+        if (!oqskem_doit[k])
+            continue;
+        if (testnum && !mr) {
+            printf("%30skeygen/s      encap/s      decap/s\n", " ");
+            testnum = 0;
+        }
+        if (mr)
+            printf("+F5:%u:%s:%f:%f:%f\n",
+                   k, oqskem_method_names[k], 
+                   oqskem_results[k][0], oqskem_results[k][1], oqskem_results[k][2]);
+
+        else
+            printf("%29s %8.1f     %8.1f     %8.1f\n",
+                   oqskem_method_names[k],
+                   1.0 / oqskem_results[k][0], 1.0 / oqskem_results[k][1], 1.0 / oqskem_results[k][2]);
+    }
+# endif
+
+# ifndef OPENSSL_NO_OQSSIG
+    testnum = 1;
+    for (k = 0; k < OQSSIG_NUM; k++) {
+        if (!oqssig_doit[k])
+            continue;
+        if (testnum && !mr) {
+            printf("%30s      sign    verify   sign/s  verify/s\n", " ");
+            testnum = 0;
+        }
+
+        if (mr)
+            printf("+F6:%u:%s:%f:%f\n",
+                   k, OBJ_nid2sn(oqssl_sig_nids_list[k]),
+                   oqssig_results[k][0], oqssig_results[k][1]);
+        else
+            printf("%29s: %8.4fs %8.4fs %8.1f %8.1f\n",
+                   OBJ_nid2sn(oqssl_sig_nids_list[k]),
+                   1.0 / oqssig_results[k][0], 1.0 / oqssig_results[k][1],
+                   oqssig_results[k][0], oqssig_results[k][1]);
+    }
+# endif
+#endif
     ret = 0;
 
  end:
@@ -3802,6 +4256,16 @@ int speed_main(int argc, char **argv)
         OPENSSL_free(loopargs[i].secret_a);
         OPENSSL_free(loopargs[i].secret_b);
 #endif
+#ifndef OPENSSL_NO_OQS
+# ifndef OPENSSL_NO_OQSKEM
+        OPENSSL_free(oqssl_kem_nids_list);
+# endif
+# ifndef OPENSSL_NO_OQSSIG
+        for (k = 0; k < OQSSIG_NUM; k++)
+            EVP_MD_CTX_free(loopargs[i].oqssig_ctx[k]);
+        OPENSSL_free(oqssl_sig_nids_list);
+# endif
+#endif
     }
 
     if (async_jobs > 0) {
@@ -3838,16 +4302,26 @@ static void pkey_print_message(const char *str, const char *str2, long num,
                                unsigned int bits, int tm)
 {
 #ifdef SIGALRM
-    BIO_printf(bio_err,
+    if (bits)
+        BIO_printf(bio_err,
                mr ? "+DTP:%d:%s:%s:%d\n"
-               : "Doing %u bits %s %s's for %ds: ", bits, str, str2, tm);
+               : "Doing %u bits %s %s's for %ds: ", bits, str, str2, tm );
+    else
+        BIO_printf(bio_err,
+               mr ? "+DTP:%s:%s:%d\n"
+               : "Doing %s %s's for %ds: ", str, str2, tm );
     (void)BIO_flush(bio_err);
     run = 1;
     alarm(tm);
 #else
-    BIO_printf(bio_err,
+    if (bits) 
+       BIO_printf(bio_err,
                mr ? "+DNP:%ld:%d:%s:%s\n"
-               : "Doing %ld %u bits %s %s's: ", num, bits, str, str2);
+               : "Doing %ld %s %s's: ", num, str, str2);
+    else 
+       BIO_printf(bio_err,
+               mr ? "+DNP:%ld:%d:%s:%s\n"
+               : "Doing %ld %s %s's: ", num, str, str2);
     (void)BIO_flush(bio_err);
 #endif
 }
