@@ -37,6 +37,10 @@
 
 # include <openssl/ntls.h>
 
+#ifndef OPENSSL_NO_OQS
+# include <oqs/oqs.h>
+#endif
+
 # ifdef OPENSSL_BUILD_SHLIBSSL
 #  undef OPENSSL_EXTERN
 #  define OPENSSL_EXTERN OPENSSL_EXPORT
@@ -206,6 +210,54 @@
 # define SSL_aSRP                0x00000040U
 /* GOST R 34.10-2012 signature auth */
 # define SSL_aGOST12             0x00000080U
+///// OQS_TEMPLATE_FRAGMENT_DEFINE_SIG_MASKS_START
+/* Dilithium2 auth */
+#define SSL_aDILITHIUM2 0x00000100U
+/* ECDSA p256 - Dilithium2 auth */
+#define SSL_aP256_DILITHIUM2 0x00000200U
+/* RSA3072 - Dilithium2 auth */
+#define SSL_aRSA3072_DILITHIUM2 0x00000400U
+/* Dilithium3 auth */
+#define SSL_aDILITHIUM3 0x00000800U
+/* ECDSA p384 - Dilithium3 auth */
+#define SSL_aP384_DILITHIUM3 0x00001000U
+/* Dilithium5 auth */
+#define SSL_aDILITHIUM5 0x00002000U
+/* ECDSA p521 - Dilithium5 auth */
+#define SSL_aP521_DILITHIUM5 0x00004000U
+/* Falcon-512 auth */
+#define SSL_aFALCON512 0x00008000U
+/* ECDSA p256 - Falcon-512 auth */
+#define SSL_aP256_FALCON512 0x00010000U
+/* RSA3072 - Falcon-512 auth */
+#define SSL_aRSA3072_FALCON512 0x00020000U
+/* Falcon-1024 auth */
+#define SSL_aFALCON1024 0x00040000U
+/* ECDSA p521 - Falcon-1024 auth */
+#define SSL_aP521_FALCON1024 0x00080000U
+/* SPHINCS+-SHA2-128f-simple auth */
+#define SSL_aSPHINCSSHA2128FSIMPLE 0x00100000U
+/* ECDSA p256 - SPHINCS+-SHA2-128f-simple auth */
+#define SSL_aP256_SPHINCSSHA2128FSIMPLE 0x00200000U
+/* RSA3072 - SPHINCS+-SHA2-128f-simple auth */
+#define SSL_aRSA3072_SPHINCSSHA2128FSIMPLE 0x00400000U
+/* SPHINCS+-SHA2-128s-simple auth */
+#define SSL_aSPHINCSSHA2128SSIMPLE 0x00800000U
+/* ECDSA p256 - SPHINCS+-SHA2-128s-simple auth */
+#define SSL_aP256_SPHINCSSHA2128SSIMPLE 0x01000000U
+/* RSA3072 - SPHINCS+-SHA2-128s-simple auth */
+#define SSL_aRSA3072_SPHINCSSHA2128SSIMPLE 0x02000000U
+/* SPHINCS+-SHA2-192f-simple auth */
+#define SSL_aSPHINCSSHA2192FSIMPLE 0x04000000U
+/* ECDSA p384 - SPHINCS+-SHA2-192f-simple auth */
+#define SSL_aP384_SPHINCSSHA2192FSIMPLE 0x08000000U
+/* SPHINCS+-SHAKE-128f-simple auth */
+#define SSL_aSPHINCSSHAKE128FSIMPLE 0x10000000U
+/* ECDSA p256 - SPHINCS+-SHAKE-128f-simple auth */
+#define SSL_aP256_SPHINCSSHAKE128FSIMPLE 0x20000000U
+/* RSA3072 - SPHINCS+-SHAKE-128f-simple auth */
+#define SSL_aRSA3072_SPHINCSSHAKE128FSIMPLE 0x40000000U
+///// OQS_TEMPLATE_FRAGMENT_DEFINE_SIG_MASKS_END
 /* Any appropriate signature auth (for TLS 1.3 ciphersuites) */
 # define SSL_aANY                0x00000000U
 /* SM2 auth */
@@ -413,7 +465,36 @@
 # else
 #  define SSL_PKEY_NUM           10
 # endif
-
+# ifndef OPENSSL_NO_OQS
+///// OQS_TEMPLATE_FRAGMENT_DEFINE_SSL_PKEYS_START
+#  define SSL_PKEY_DILITHIUM2 10
+#  define SSL_PKEY_P256_DILITHIUM2 11
+#  define SSL_PKEY_RSA3072_DILITHIUM2 12
+#  define SSL_PKEY_DILITHIUM3 13
+#  define SSL_PKEY_P384_DILITHIUM3 14
+#  define SSL_PKEY_DILITHIUM5 15
+#  define SSL_PKEY_P521_DILITHIUM5 16
+#  define SSL_PKEY_FALCON512 17
+#  define SSL_PKEY_P256_FALCON512 18
+#  define SSL_PKEY_RSA3072_FALCON512 19
+#  define SSL_PKEY_FALCON1024 20
+#  define SSL_PKEY_P521_FALCON1024 21
+#  define SSL_PKEY_SPHINCSSHA2128FSIMPLE 22
+#  define SSL_PKEY_P256_SPHINCSSHA2128FSIMPLE 23
+#  define SSL_PKEY_RSA3072_SPHINCSSHA2128FSIMPLE 24
+#  define SSL_PKEY_SPHINCSSHA2128SSIMPLE 25
+#  define SSL_PKEY_P256_SPHINCSSHA2128SSIMPLE 26
+#  define SSL_PKEY_RSA3072_SPHINCSSHA2128SSIMPLE 27
+#  define SSL_PKEY_SPHINCSSHA2192FSIMPLE 28
+#  define SSL_PKEY_P384_SPHINCSSHA2192FSIMPLE 29
+#  define SSL_PKEY_SPHINCSSHAKE128FSIMPLE 30
+#  define SSL_PKEY_P256_SPHINCSSHAKE128FSIMPLE 31
+#  define SSL_PKEY_RSA3072_SPHINCSSHAKE128FSIMPLE 32
+#  define SSL_PKEY_NUM 33
+///// OQS_TEMPLATE_FRAGMENT_DEFINE_SSL_PKEYS_END
+# else
+#  define SSL_PKEY_NUM           10
+# endif
 
 /*-
  * SSL_kRSA <- RSA_ENC
@@ -428,6 +509,152 @@
 #define CERT_PUBLIC_KEY         1
 #define CERT_PRIVATE_KEY        2
 */
+
+#ifndef OPENSSL_NO_OQS
+/* Returns the curve ID for an OQS KEM NID */
+///// OQS_TEMPLATE_FRAGMENT_OQS_KEM_CURVEID_START
+#define OQS_KEM_CURVEID(nid) \
+  (nid == NID_frodo640aes ? 0x0200 : \
+  (nid == NID_frodo640shake ? 0x0201 : \
+  (nid == NID_frodo976aes ? 0x0202 : \
+  (nid == NID_frodo976shake ? 0x0203 : \
+  (nid == NID_frodo1344aes ? 0x0204 : \
+  (nid == NID_frodo1344shake ? 0x0205 : \
+  (nid == NID_kyber512 ? 0x023A : \
+  (nid == NID_kyber768 ? 0x023C : \
+  (nid == NID_kyber1024 ? 0x023D : \
+  (nid == NID_bikel1 ? 0x0241 : \
+  (nid == NID_bikel3 ? 0x0242 : \
+  (nid == NID_bikel5 ? 0x0243 : \
+  (nid == NID_hqc128 ? 0x022C : \
+  (nid == NID_hqc192 ? 0x022D : \
+  (nid == NID_hqc256 ? 0x022E : \
+  0 \
+  )))))))))))))))
+///// OQS_TEMPLATE_FRAGMENT_OQS_KEM_CURVEID_END
+
+///// OQS_TEMPLATE_FRAGMENT_OQS_KEM_HYBRID_CURVEID_START
+#define OQS_KEM_HYBRID_CURVEID(nid) \
+    (nid == NID_p256_frodo640aes ? 0x2F00 : \
+    (nid == NID_p256_frodo640shake ? 0x2F01 : \
+    (nid == NID_p384_frodo976aes ? 0x2F02 : \
+    (nid == NID_p384_frodo976shake ? 0x2F03 : \
+    (nid == NID_p521_frodo1344aes ? 0x2F04 : \
+    (nid == NID_p521_frodo1344shake ? 0x2F05 : \
+    (nid == NID_p256_kyber512 ? 0x2F3A : \
+    (nid == NID_p384_kyber768 ? 0x2F3C : \
+    (nid == NID_p521_kyber1024 ? 0x2F3D : \
+    (nid == NID_p256_bikel1 ? 0x2F41 : \
+    (nid == NID_p384_bikel3 ? 0x2F42 : \
+    (nid == NID_p521_bikel5 ? 0x2F43 : \
+    (nid == NID_p256_hqc128 ? 0x2F2C : \
+    (nid == NID_p384_hqc192 ? 0x2F2D : \
+    (nid == NID_p521_hqc256 ? 0x2F2E : \
+  0 \
+  )))))))))))))))
+///// OQS_TEMPLATE_FRAGMENT_OQS_KEM_HYBRID_CURVEID_END
+
+  /* Returns the non-hybrid OQS KEM NID for a PQ or hybrid curve ID */
+///// OQS_TEMPLATE_FRAGMENT_OQS_KEM_NID_START
+#define OQS_KEM_NID(curveID) \
+  (curveID == 0x0200 || curveID == 0x2F00 ? NID_frodo640aes : \
+  (curveID == 0x0201 || curveID == 0x2F01 ? NID_frodo640shake : \
+  (curveID == 0x0202 || curveID == 0x2F02 ? NID_frodo976aes : \
+  (curveID == 0x0203 || curveID == 0x2F03 ? NID_frodo976shake : \
+  (curveID == 0x0204 || curveID == 0x2F04 ? NID_frodo1344aes : \
+  (curveID == 0x0205 || curveID == 0x2F05 ? NID_frodo1344shake : \
+  (curveID == 0x023A || curveID == 0x2F3A ? NID_kyber512 : \
+  (curveID == 0x023C || curveID == 0x2F3C ? NID_kyber768 : \
+  (curveID == 0x023D || curveID == 0x2F3D ? NID_kyber1024 : \
+  (curveID == 0x0241 || curveID == 0x2F41 ? NID_bikel1 : \
+  (curveID == 0x0242 || curveID == 0x2F42 ? NID_bikel3 : \
+  (curveID == 0x0243 || curveID == 0x2F43 ? NID_bikel5 : \
+  (curveID == 0x022C || curveID == 0x2F2C ? NID_hqc128 : \
+  (curveID == 0x022D || curveID == 0x2F2D ? NID_hqc192 : \
+  (curveID == 0x022E || curveID == 0x2F2E ? NID_hqc256 : \
+  0 \
+  )))))))))))))))
+///// OQS_TEMPLATE_FRAGMENT_OQS_KEM_NID_END
+
+  /* Returns the hybrid OQS KEM NID for a hybrid curve ID */
+///// OQS_TEMPLATE_FRAGMENT_OQS_HYBRID_KEM_NID_START
+#define OQS_HYBRID_KEM_NID(curveID) \
+    (curveID == 0x2F00 ? NID_p256_frodo640aes : \
+    (curveID == 0x2F01 ? NID_p256_frodo640shake : \
+    (curveID == 0x2F02 ? NID_p384_frodo976aes : \
+    (curveID == 0x2F03 ? NID_p384_frodo976shake : \
+    (curveID == 0x2F04 ? NID_p521_frodo1344aes : \
+    (curveID == 0x2F05 ? NID_p521_frodo1344shake : \
+    (curveID == 0x2F3A ? NID_p256_kyber512 : \
+    (curveID == 0x2F3C ? NID_p384_kyber768 : \
+    (curveID == 0x2F3D ? NID_p521_kyber1024 : \
+    (curveID == 0x2F41 ? NID_p256_bikel1 : \
+    (curveID == 0x2F42 ? NID_p384_bikel3 : \
+    (curveID == 0x2F43 ? NID_p521_bikel5 : \
+    (curveID == 0x2F2C ? NID_p256_hqc128 : \
+    (curveID == 0x2F2D ? NID_p384_hqc192 : \
+    (curveID == 0x2F2E ? NID_p521_hqc256 : \
+  0 \
+  )))))))))))))))
+///// OQS_TEMPLATE_FRAGMENT_OQS_HYBRID_KEM_NID_END
+
+/* Returns true if the curve ID is for an OQS KEM */
+// TBD, ideally, this bracket is also generated
+#define IS_OQS_KEM_CURVEID(id) (id >= 0x01FF && id <= 0x0250)
+
+/* Returns true if the curve ID is for an OQS hybrid KEM */
+// TBD, ideally, this bracket is also generated
+#define IS_OQS_KEM_HYBRID_CURVEID(id) (id >= 0x2F00 && id <= 0x2FFF)
+
+/* Returns the OQS alg ID for OQS API */
+///// OQS_TEMPLATE_FRAGMENT_OQS_ALG_NAME_START
+#define OQS_ALG_NAME(nid) \
+  (nid == NID_frodo640aes ? OQS_KEM_alg_frodokem_640_aes : \
+  (nid == NID_frodo640shake ? OQS_KEM_alg_frodokem_640_shake : \
+  (nid == NID_frodo976aes ? OQS_KEM_alg_frodokem_976_aes : \
+  (nid == NID_frodo976shake ? OQS_KEM_alg_frodokem_976_shake : \
+  (nid == NID_frodo1344aes ? OQS_KEM_alg_frodokem_1344_aes : \
+  (nid == NID_frodo1344shake ? OQS_KEM_alg_frodokem_1344_shake : \
+  (nid == NID_kyber512 ? OQS_KEM_alg_kyber_512 : \
+  (nid == NID_kyber768 ? OQS_KEM_alg_kyber_768 : \
+  (nid == NID_kyber1024 ? OQS_KEM_alg_kyber_1024 : \
+  (nid == NID_bikel1 ? OQS_KEM_alg_bike_l1 : \
+  (nid == NID_bikel3 ? OQS_KEM_alg_bike_l3 : \
+  (nid == NID_bikel5 ? OQS_KEM_alg_bike_l5 : \
+  (nid == NID_hqc128 ? OQS_KEM_alg_hqc_128 : \
+  (nid == NID_hqc192 ? OQS_KEM_alg_hqc_192 : \
+  (nid == NID_hqc256 ? OQS_KEM_alg_hqc_256 : \
+  0 \
+  )))))))))))))))
+///// OQS_TEMPLATE_FRAGMENT_OQS_ALG_NAME_END
+
+/* Returns the classic curve ID for a given hybrid curve */
+///// OQS_TEMPLATE_FRAGMENT_OQS_MAP_HYBRID_START
+#define OQS_MAP_HYBRID2CURVE(cid) \
+  (cid == 0x01FF || cid == 0x2FFF ? 23 : \
+  (cid == 0x2F00 ?23: \
+  (cid == 0x2F01 ?23: \
+  (cid == 0x2F02 ?24: \
+  (cid == 0x2F03 ?24: \
+  (cid == 0x2F04 ?25: \
+  (cid == 0x2F05 ?25: \
+  (cid == 0x2F3A ?23: \
+  (cid == 0x2F3C ?24: \
+  (cid == 0x2F3D ?25: \
+  (cid == 0x2F41 ?23: \
+  (cid == 0x2F42 ?24: \
+  (cid == 0x2F43 ?25: \
+  (cid == 0x2F2C ?23: \
+  (cid == 0x2F2D ?24: \
+  (cid == 0x2F2E ?25: \
+  23 \
+  ))))))))))))))))
+///// OQS_TEMPLATE_FRAGMENT_OQS_MAP_HYBRID_END
+
+/* Returns the classical nid for an hybrid alg */
+#define OQS_KEM_CLASSICAL_CURVEID(curveID) (IS_OQS_KEM_HYBRID_CURVEID(curveID) ? OQS_MAP_HYBRID2CURVE(curveID) : 0)
+
+#endif
 
 /* Post-Handshake Authentication state */
 typedef enum {
@@ -461,7 +688,7 @@ struct ssl_cipher_st {
      * 'algorithms'
      */
     uint32_t algorithm_mkey;    /* key exchange algorithm */
-    uint32_t algorithm_auth;    /* server authentication */
+    uint64_t algorithm_auth;    /* server authentication */
     uint32_t algorithm_enc;     /* symmetric encryption */
     uint32_t algorithm_mac;     /* symmetric authentication */
     int min_tls;                /* minimum SSL/TLS protocol version */
@@ -1712,7 +1939,7 @@ typedef struct tls_group_info_st {
  */
 typedef struct {
     int nid; /* NID of public key algorithm */
-    uint32_t amask; /* authmask corresponding to key type */
+    uint64_t amask; /* authmask corresponding to key type */
 } SSL_CERT_LOOKUP;
 
 typedef struct ssl3_state_st {
@@ -1847,6 +2074,15 @@ typedef struct ssl3_state_st {
          */
         int min_ver;
         int max_ver;
+#ifndef OPENSSL_NO_OQS
+        /*
+         * OQS artefacts.
+         */
+        int oqs_kem_curve_id; /* curve_id of the kex */
+        OQS_KEM* oqs_kem; /* KEM context */
+        int oqs_peer_msg_len; /* save peer message's len */
+        void* oqs_kem_client; /* oqs client private key (in extensions_clnt.c) or message (in extensions_srvr.c) */
+#endif
     } tmp;
 
     /* Connection binding to prevent renegotiation attacks */
@@ -2266,6 +2502,32 @@ typedef enum downgrade_en {
 
 #define TLSEXT_SIGALG_ed25519                                   0x0807
 #define TLSEXT_SIGALG_ed448                                     0x0808
+///// OQS_TEMPLATE_FRAGMENT_DEFINE_SIG_CODE_POINTS_START
+/* The following are all private use code points */
+#define TLSEXT_SIGALG_dilithium2 0xfea0
+#define TLSEXT_SIGALG_p256_dilithium2 0xfea1
+#define TLSEXT_SIGALG_rsa3072_dilithium2 0xfea2
+#define TLSEXT_SIGALG_dilithium3 0xfea3
+#define TLSEXT_SIGALG_p384_dilithium3 0xfea4
+#define TLSEXT_SIGALG_dilithium5 0xfea5
+#define TLSEXT_SIGALG_p521_dilithium5 0xfea6
+#define TLSEXT_SIGALG_falcon512 0xfeae
+#define TLSEXT_SIGALG_p256_falcon512 0xfeaf
+#define TLSEXT_SIGALG_rsa3072_falcon512 0xfeb0
+#define TLSEXT_SIGALG_falcon1024 0xfeb1
+#define TLSEXT_SIGALG_p521_falcon1024 0xfeb2
+#define TLSEXT_SIGALG_sphincssha2128fsimple 0xfeb3
+#define TLSEXT_SIGALG_p256_sphincssha2128fsimple 0xfeb4
+#define TLSEXT_SIGALG_rsa3072_sphincssha2128fsimple 0xfeb5
+#define TLSEXT_SIGALG_sphincssha2128ssimple 0xfeb6
+#define TLSEXT_SIGALG_p256_sphincssha2128ssimple 0xfeb7
+#define TLSEXT_SIGALG_rsa3072_sphincssha2128ssimple 0xfeb8
+#define TLSEXT_SIGALG_sphincssha2192fsimple 0xfeb9
+#define TLSEXT_SIGALG_p384_sphincssha2192fsimple 0xfeba
+#define TLSEXT_SIGALG_sphincsshake128fsimple 0xfec2
+#define TLSEXT_SIGALG_p256_sphincsshake128fsimple 0xfec3
+#define TLSEXT_SIGALG_rsa3072_sphincsshake128fsimple 0xfec4
+///// OQS_TEMPLATE_FRAGMENT_DEFINE_SIG_CODE_POINTS_END
 
 /* Known PSK key exchange modes */
 #define TLSEXT_KEX_MODE_KE                                      0x00
@@ -2769,6 +3031,19 @@ __owur EVP_PKEY *ssl_generate_param_group(uint16_t id);
 #  endif                        /* OPENSSL_NO_EC */
 
 __owur int tls_curve_allowed(SSL *s, uint16_t curve, int op);
+/**
+ * OQS note: since it would be too unwieldy to add the
+ * group IDs and keyshares of all of liboqs's alogrithms
+ * (and their corresponding hybrid variants) to the ClientHello,
+ * tls1_get_supported_groups, which is used to populate the ClientHello,
+ * returns only the level-1 P-256 hybrids.
+ * This function returns all supported key-exchange algorithms, and
+ * is used by the server to determine the shared group.
+ */
+#ifndef OPENSSL_NO_OQS
+void oqs_tls13_get_server_supported_groups(SSL *s, const uint16_t **pgroups,
+                                  size_t *pgroupslen);
+#endif
 void tls1_get_supported_groups(SSL *s, const uint16_t **pgroups,
                                size_t *pgroupslen);
 

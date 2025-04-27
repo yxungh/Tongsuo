@@ -10,6 +10,9 @@
 /* Internal ASN1 structures and functions: not for application use */
 
 /* ASN1 public key method structure */
+#ifndef OPENSSL_NO_OQS
+# include <oqs/oqs.h>
+#endif
 
 struct evp_pkey_asn1_method_st {
     int pkey_id;
@@ -84,6 +87,35 @@ extern const EVP_PKEY_ASN1_METHOD rsa_asn1_meths[2];
 extern const EVP_PKEY_ASN1_METHOD rsa_pss_asn1_meth;
 extern const EVP_PKEY_ASN1_METHOD siphash_asn1_meth;
 extern const EVP_PKEY_ASN1_METHOD eia3_asn1_meth;
+
+#ifndef OPENSSL_NO_OQS
+///// OQS_TEMPLATE_FRAGMENT_DEFINE_ASN1_METHS_START
+extern const EVP_PKEY_ASN1_METHOD dilithium2_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD p256_dilithium2_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD rsa3072_dilithium2_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD dilithium3_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD p384_dilithium3_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD dilithium5_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD p521_dilithium5_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD falcon512_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD p256_falcon512_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD rsa3072_falcon512_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD falcon1024_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD p521_falcon1024_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD sphincssha2128fsimple_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD p256_sphincssha2128fsimple_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD rsa3072_sphincssha2128fsimple_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD sphincssha2128ssimple_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD p256_sphincssha2128ssimple_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD rsa3072_sphincssha2128ssimple_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD sphincssha2192fsimple_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD p384_sphincssha2192fsimple_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD sphincsshake128fsimple_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD p256_sphincsshake128fsimple_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD rsa3072_sphincsshake128fsimple_asn1_meth;
+///// OQS_TEMPLATE_FRAGMENT_DEFINE_ASN1_METHS_END
+
+#endif
 
 /*
  * These are used internally in the ASN1_OBJECT to keep track of whether the

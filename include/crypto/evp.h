@@ -9,6 +9,9 @@
 
 #include <openssl/evp.h>
 #include "internal/refcount.h"
+#ifndef OPENSSL_NO_OQS
+# include <oqs/oqs.h>
+#endif
 
 /*
  * Don't free up md_ctx->pctx in EVP_MD_CTX_reset, use the reserved flag
@@ -132,6 +135,34 @@ extern const EVP_PKEY_METHOD hkdf_pkey_meth;
 extern const EVP_PKEY_METHOD poly1305_pkey_meth;
 extern const EVP_PKEY_METHOD siphash_pkey_meth;
 extern const EVP_PKEY_METHOD eia3_pkey_meth;
+
+#ifndef OPENSSL_NO_OQS
+///// OQS_TEMPLATE_FRAGMENT_DEFINE_EVP_METHS_START
+extern const EVP_PKEY_METHOD dilithium2_pkey_meth;
+extern const EVP_PKEY_METHOD p256_dilithium2_pkey_meth;
+extern const EVP_PKEY_METHOD rsa3072_dilithium2_pkey_meth;
+extern const EVP_PKEY_METHOD dilithium3_pkey_meth;
+extern const EVP_PKEY_METHOD p384_dilithium3_pkey_meth;
+extern const EVP_PKEY_METHOD dilithium5_pkey_meth;
+extern const EVP_PKEY_METHOD p521_dilithium5_pkey_meth;
+extern const EVP_PKEY_METHOD falcon512_pkey_meth;
+extern const EVP_PKEY_METHOD p256_falcon512_pkey_meth;
+extern const EVP_PKEY_METHOD rsa3072_falcon512_pkey_meth;
+extern const EVP_PKEY_METHOD falcon1024_pkey_meth;
+extern const EVP_PKEY_METHOD p521_falcon1024_pkey_meth;
+extern const EVP_PKEY_METHOD sphincssha2128fsimple_pkey_meth;
+extern const EVP_PKEY_METHOD p256_sphincssha2128fsimple_pkey_meth;
+extern const EVP_PKEY_METHOD rsa3072_sphincssha2128fsimple_pkey_meth;
+extern const EVP_PKEY_METHOD sphincssha2128ssimple_pkey_meth;
+extern const EVP_PKEY_METHOD p256_sphincssha2128ssimple_pkey_meth;
+extern const EVP_PKEY_METHOD rsa3072_sphincssha2128ssimple_pkey_meth;
+extern const EVP_PKEY_METHOD sphincssha2192fsimple_pkey_meth;
+extern const EVP_PKEY_METHOD p384_sphincssha2192fsimple_pkey_meth;
+extern const EVP_PKEY_METHOD sphincsshake128fsimple_pkey_meth;
+extern const EVP_PKEY_METHOD p256_sphincsshake128fsimple_pkey_meth;
+extern const EVP_PKEY_METHOD rsa3072_sphincsshake128fsimple_pkey_meth;
+///// OQS_TEMPLATE_FRAGMENT_DEFINE_EVP_METHS_END
+#endif
 
 /* struct evp_kdf_impl_st is defined by the implementation */
 typedef struct evp_kdf_impl_st EVP_KDF_IMPL;

@@ -12,6 +12,7 @@
 /out.*
 /tmp.*
 /configdata.pm
+/oqs
 
 # *all* Makefiles
 Makefile
@@ -181,3 +182,18 @@ pod2htmd.tmp
 # Windows manifest files
 *.manifest
 doc-nits
+
+# OQS stuff
+/oqs-test/tests/__pycache__
+/oqs-test/tmp/
+/oqs-interop-test/tests/__pycache__
+/oqs-interop-test/tmp/
+/oqs-interop-test/bssl_algorithms.py
+/*.crt
+/*.key
+/*.csr
+/*.srl
+/*.pem
+/*.out
+
+/boringssl

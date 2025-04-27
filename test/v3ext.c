@@ -14,6 +14,7 @@
 #include <openssl/err.h>
 
 #include "testutil.h"
+#include <string.h>
 
 static const char *infile;
 

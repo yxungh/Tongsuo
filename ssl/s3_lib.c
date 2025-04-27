@@ -17,6 +17,9 @@
 #include <openssl/dh.h>
 #include <openssl/rand.h>
 #include "internal/cryptlib.h"
+#ifndef OPENSSL_NO_OQS
+# include <oqs/oqs.h>
+#endif
 
 #define TLS13_NUM_CIPHERS       OSSL_NELEM(tls13_ciphers)
 #define SSL3_NUM_CIPHERS        OSSL_NELEM(ssl3_ciphers)
@@ -3290,6 +3293,11 @@ int ssl3_clear(SSL *s)
     s->ext.npn_len = 0;
 #endif
 
+#ifndef OPENSSL_NO_OQS
+    /* Clear OQS artefacts */
+    OQS_KEM_free(s->s3->tmp.oqs_kem);
+    s->s3->tmp.oqs_kem = NULL;
+#endif
     return 1;
 }
 
@@ -3641,6 +3649,16 @@ long ssl3_ctrl(SSL *s, int cmd, long larg, void *parg)
         }
 #endif
 
+#ifndef OPENSSL_NO_OQS
+    case SSL_CTRL_GET_OQS_KEM_CURVE_ID:
+        {
+          if (s->server || s->session == NULL || s->s3->tmp.oqs_kem_curve_id == 0) {
+            return 0;
+          } else {
+            return s->s3->tmp.oqs_kem_curve_id;
+          }
+        }
+#endif
     default:
         break;
     }

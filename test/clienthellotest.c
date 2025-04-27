@@ -23,13 +23,22 @@
 
 #define CLIENT_VERSION_LEN      2
 
+#ifndef OPENSSL_NO_OQS
+#define TOTAL_NUM_TESTS                         1
+#else
 #define TOTAL_NUM_TESTS                         4
-
+#endif
 /*
  * Test that explicitly setting ticket data results in it appearing in the
  * ClientHello for a negotiated SSL/TLS version
  */
 #define TEST_SET_SESSION_TICK_DATA_VER_NEG      0
+
+#ifndef OPENSSL_NO_OQS
+#define TEST_ADD_PADDING                        -3
+#define TEST_PADDING_NOT_NEEDED                 -1
+#define TEST_ADD_PADDING_AND_PSK                -2
+#else
 /* Enable padding and make sure ClientHello is long enough to require it */
 #define TEST_ADD_PADDING                        1
 /* Enable padding and make sure ClientHello is short enough to not need it */
@@ -39,6 +48,7 @@
  * ClientHello is long enough to need padding)
  */
 #define TEST_ADD_PADDING_AND_PSK                3
+#endif
 
 #define F5_WORKAROUND_MIN_MSG_LEN   0x7f
 #define F5_WORKAROUND_MAX_MSG_LEN   0x200
