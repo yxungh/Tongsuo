@@ -1149,7 +1149,7 @@ static const SIGALG_LOOKUP sigalg_lookup_tbl[] = {
     {NULL, TLSEXT_SIGALG_gostr34102001_gostr3411,
      NID_id_GostR3411_94, SSL_MD_GOST94_IDX,
      NID_id_GostR3410_2001, SSL_PKEY_GOST01,
-     NID_undef, NID_undef}
+     NID_undef, NID_undef},
 #endif
 #ifndef OPENSSL_NO_OQS
     ///// OQS_TEMPLATE_FRAGMENT_POPULATE_SIGALG_TBL_START

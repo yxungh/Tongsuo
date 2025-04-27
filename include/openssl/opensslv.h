@@ -41,9 +41,9 @@ extern "C" {
  */
 # define OPENSSL_VERSION_NUMBER  0x10101080L
 #ifndef OPENSSL_NO_OQS
-# define OPENSSL_VERSION_TEXT "OpenSSL 1.1.1h  22 Sep 2020"
-#else
 # define OPENSSL_VERSION_TEXT "OpenSSL 1.1.1h  22 Sep 2020, Open Quantum Safe 2025-04"
+#else
+# define OPENSSL_VERSION_TEXT "OpenSSL 1.1.1h  22 Sep 2020"
 #endif
 
 /*-
@@ -118,7 +118,7 @@ extern "C" {
  */
 
 # define BABASSL_VERSION_NUMBER  0x80304000L
-# define BABASSL_VERSION_TEXT    "BabaSSL 8.3.4-dev"
+# define BABASSL_VERSION_TEXT    "BabaSSL 8.3.4"
 
 #ifdef  __cplusplus
 }

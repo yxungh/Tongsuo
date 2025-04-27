@@ -3358,7 +3358,6 @@ static const unsigned int sn_objs[NUM_SN] = {
      448,    /* "room" */
      463,    /* "roomNumber" */
 #ifndef OPENSSL_NO_OQS
-    1227,    /* "rsa3072_bikel4" */
     1229,    /* "rsa3072_dilithium2" */
     1236,    /* "rsa3072_falcon512" */
     1241,    /* "rsa3072_sphincssha2128fsimple" */
@@ -3557,9 +3556,6 @@ static const unsigned int sn_objs[NUM_SN] = {
     1142,    /* "sm-scheme" */
      387,    /* "snmpv2" */
 #ifndef OPENSSL_NO_OQS
-    1228,    /* "sphincsharaka256frobust" */
-    1225,    /* "sphincsharaka256srobust" */
-    1232
     1239,    /* "sphincssha2128fsimple" */
     1242,    /* "sphincssha2128ssimple" */
     1245,    /* "sphincssha2192fsimple" */

@@ -2054,6 +2054,7 @@ int tls_parse_stoc_key_share(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
     size_t shared_secret_len = 0, oqs_shared_secret_len = 0;
     int do_pqc = 0;
     int do_hybrid = 0;
+    int has_error = 0;
 #endif
 
 #ifdef OPENSSL_NO_OQS
