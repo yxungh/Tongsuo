@@ -80,7 +80,6 @@ static const nid_triple sigoid_srt[] = {
     {NID_RSA_SHA3_384, NID_sha3_384, NID_rsaEncryption},
     {NID_RSA_SHA3_512, NID_sha3_512, NID_rsaEncryption},
     {NID_SM2_with_SM3, NID_sm3, NID_sm2},
-#ifndef OPENSSL_NO_OQS
     {NID_dilithium2, NID_sha512, NID_dilithium2},
     {NID_p256_dilithium2, NID_sha512, NID_p256_dilithium2},
     {NID_rsa3072_dilithium2, NID_sha512, NID_rsa3072_dilithium2},
@@ -111,7 +110,6 @@ static const nid_triple sigoid_srt[] = {
      NID_p256_sphincsshake128fsimple},
     {NID_rsa3072_sphincsshake128fsimple, NID_sha512,
      NID_rsa3072_sphincsshake128fsimple},
-#endif
 };
 
 static const nid_triple *const sigoid_srt_xref[] = {
@@ -143,23 +141,6 @@ static const nid_triple *const sigoid_srt_xref[] = {
     &sigoid_srt[22],
     &sigoid_srt[34],
     &sigoid_srt[39],
-    &sigoid_srt[16],
-    &sigoid_srt[23],
-    &sigoid_srt[19],
-    &sigoid_srt[31],
-    &sigoid_srt[36],
-    &sigoid_srt[25],
-    &sigoid_srt[26],
-    &sigoid_srt[27],
-    &sigoid_srt[28],
-    &sigoid_srt[40],
-    &sigoid_srt[41],
-    &sigoid_srt[44],
-    &sigoid_srt[45],
-    &sigoid_srt[46],
-    &sigoid_srt[47],
-    &sigoid_srt[48],
-#ifndef OPENSSL_NO_OQS
     &sigoid_srt[49],
     &sigoid_srt[50],
     &sigoid_srt[51],
@@ -183,5 +164,20 @@ static const nid_triple *const sigoid_srt_xref[] = {
     &sigoid_srt[69],
     &sigoid_srt[70],
     &sigoid_srt[71],
-#endif
+    &sigoid_srt[16],
+    &sigoid_srt[23],
+    &sigoid_srt[19],
+    &sigoid_srt[31],
+    &sigoid_srt[36],
+    &sigoid_srt[25],
+    &sigoid_srt[26],
+    &sigoid_srt[27],
+    &sigoid_srt[28],
+    &sigoid_srt[40],
+    &sigoid_srt[41],
+    &sigoid_srt[44],
+    &sigoid_srt[45],
+    &sigoid_srt[46],
+    &sigoid_srt[47],
+    &sigoid_srt[48],
 };
