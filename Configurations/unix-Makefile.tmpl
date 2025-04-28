@@ -347,16 +347,16 @@ CNF_CPPFLAGS={- our $cppflags2 =
                                               @{$config{includes}}),
                               @{$config{cppflags}}) -}
 CNF_CFLAGS={- join(' ', $target{cflags} || (),
-                        "-Ioqs/include",
-                        @{$config{cflags}}) -}
+						($config{options} =~ /enable-oqs/) ? "-Ioqs/include" : (), 
+						@{$config{cflags}}) -}
 CNF_CXXFLAGS={- join(' ', $target{cxxflags} || (),
-                          @{$config{cxxflags}}) -}
+						@{$config{cxxflags}}) -}
 CNF_LDFLAGS={- join(' ', $target{lflags} || (),
-                        "-Loqs/lib -Loqs/lib64",
-                         @{$config{lflags}}) -}
-CNF_EX_LIBS={- join(' ', $target{ex_libs} || (),
-                        "-loqs",
-                         @{$config{ex_libs}}) -}
+						($config{options} =~ /enable-oqs/) ? "-Loqs/lib -Loqs/lib64" : (), 
+						@{$config{lflags}}) -}
+CNF_EX_LIBS={- join(' ', $target{ex_libs} || (),                      
+						($config{options} =~ /enable-oqs/) ? "-loqs" : (), 
+						@{$config{ex_libs}}) -}
 
 # Variables starting with LIB_ are used to build library object files
 # and shared libraries.
@@ -532,12 +532,12 @@ clean: libclean
 	$(RM) tags TAGS doc-nits
 	$(RM) -r test/test-runs
 	$(RM) openssl.pc libcrypto.pc libssl.pc liboqs.pc
-    -$(RM) `find . -type l \! -name '.*' \! -name 'liboqs.*' -print`
+	-$(RM) `find . -type l \! -name '.*' \! -name 'liboqs.*' -print`
 
 distclean: clean
 	$(RM) configdata.pm
 	$(RM) Makefile
-    -$(RM) -rf oqs
+	-$(RM) -rf oqs
 
 # We check if any depfile is newer than Makefile and decide to
 # concatenate only if that is true.
@@ -620,7 +620,7 @@ install_dev: install_runtime_libs
 		cp $$i "$(DESTDIR)$(INSTALLTOP)/include/openssl/$$fn"; \
 		chmod 644 "$(DESTDIR)$(INSTALLTOP)/include/openssl/$$fn"; \
 	done
-    @$(PERL) $(SRCDIR)/util/mkdir-p.pl "$(DESTDIR)$(INSTALLTOP)/include/oqs"
+	@$(PERL) $(SRCDIR)/util/mkdir-p.pl "$(DESTDIR)$(INSTALLTOP)/include/oqs"
 	@set -e; for i in $(SRCDIR)/oqs/include/oqs/*.h; do \
 		fn=`basename $$i`; \
 		$(ECHO) "install $$i -> $(DESTDIR)$(INSTALLTOP)/include/oqs/$$fn"; \
@@ -682,7 +682,7 @@ install_dev: install_runtime_libs
 	@$(ECHO) "install openssl.pc -> $(DESTDIR)$(libdir)/pkgconfig/openssl.pc"
 	@cp openssl.pc "$(DESTDIR)$(libdir)/pkgconfig"
 	@chmod 644 "$(DESTDIR)$(libdir)/pkgconfig/openssl.pc"
-    @$(ECHO) "install liboqs.pc -> $(DESTDIR)$(libdir)/pkgconfig/liboqs.pc"
+	@$(ECHO) "install liboqs.pc -> $(DESTDIR)$(libdir)/pkgconfig/liboqs.pc"
 	@cp liboqs.pc $(DESTDIR)$(libdir)/pkgconfig
 	@chmod 644 $(DESTDIR)$(libdir)/pkgconfig/liboqs.pc
 
@@ -727,7 +727,7 @@ uninstall_dev: uninstall_runtime_libs
 	$(RM) "$(DESTDIR)$(libdir)/pkgconfig/libcrypto.pc"
 	$(RM) "$(DESTDIR)$(libdir)/pkgconfig/libssl.pc"
 	$(RM) "$(DESTDIR)$(libdir)/pkgconfig/openssl.pc"
-    $(RM) "$(DESTDIR)$(libdir)/pkgconfig/liboqs.pc"
+	$(RM) "$(DESTDIR)$(libdir)/pkgconfig/liboqs.pc"
 	-$(RMDIR) "$(DESTDIR)$(libdir)/pkgconfig"
 	-$(RMDIR) "$(DESTDIR)$(libdir)"
 
