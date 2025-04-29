@@ -291,12 +291,12 @@ static const ERR_STRING_DATA EC_str_functs[] = {
     {ERR_PACK(ERR_LIB_EC, EC_F_PKEY_EC_KEYGEN, 0), "pkey_ec_keygen"},
     {ERR_PACK(ERR_LIB_EC, EC_F_PKEY_EC_PARAMGEN, 0), "pkey_ec_paramgen"},
     {ERR_PACK(ERR_LIB_EC, EC_F_PKEY_EC_SIGN, 0), "pkey_ec_sign"},
-    {ERR_PACK(ERR_LIB_EC, EC_F_VALIDATE_ECX_DERIVE, 0), "validate_ecx_derive"},
     {ERR_PACK(ERR_LIB_EC, EC_F_PKEY_OQS_CTRL, 0), "pkey_oqs_ctrl"},
     {ERR_PACK(ERR_LIB_EC, EC_F_PKEY_OQS_DIGESTSIGN, 0), "pkey_oqs_digestsign"},
     {ERR_PACK(ERR_LIB_EC, EC_F_PKEY_OQS_DIGESTVERIFY, 0),
      "pkey_oqs_digestverify"},
     {ERR_PACK(ERR_LIB_EC, EC_F_PKEY_OQS_KEYGEN, 0), "pkey_oqs_keygen"},
+    {ERR_PACK(ERR_LIB_EC, EC_F_VALIDATE_ECX_DERIVE, 0), "validate_ecx_derive"},
     {0, NULL}
 };
 

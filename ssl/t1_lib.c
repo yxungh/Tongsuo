@@ -24,18 +24,18 @@
 # include <oqs/oqs.h>
 #endif
 
-#ifndef OPENSSL_NO_OPS
-static const SIGALG_LOOKUP *find_sig_alg(SSL *s, X509 *x, EVP_PKEY *pkey);
+// #ifndef OPENSSL_NO_OPS
+// static const SIGALG_LOOKUP *find_sig_alg(SSL *s, X509 *x, EVP_PKEY *pkey);
 
-static const SIGALG_LOOKUP *find_sig_alg(SSL *s, X509 *x, EVP_PKEY *pkey);
-static int tls12_sigalg_allowed(const SSL *s, int op, const SIGALG_LOOKUP *lu);
+// static const SIGALG_LOOKUP *find_sig_alg(SSL *s, X509 *x, EVP_PKEY *pkey);
+// static int tls12_sigalg_allowed(const SSL *s, int op, const SIGALG_LOOKUP *lu);
 
-static const SIGALG_LOOKUP *find_sig_alg(SSL *s, X509 *x, EVP_PKEY *pkey);
-static int tls12_sigalg_allowed(const SSL *s, int op, const SIGALG_LOOKUP *lu);
+// static const SIGALG_LOOKUP *find_sig_alg(SSL *s, X509 *x, EVP_PKEY *pkey);
+// static int tls12_sigalg_allowed(const SSL *s, int op, const SIGALG_LOOKUP *lu);
 
-static const SIGALG_LOOKUP *find_sig_alg(SSL *s, X509 *x, EVP_PKEY *pkey);
-static int tls12_sigalg_allowed(const SSL *s, int op, const SIGALG_LOOKUP *lu);
-#endif
+// static const SIGALG_LOOKUP *find_sig_alg(SSL *s, X509 *x, EVP_PKEY *pkey);
+// static int tls12_sigalg_allowed(const SSL *s, int op, const SIGALG_LOOKUP *lu);
+// #endif
 
 static const SIGALG_LOOKUP *find_sig_alg(SSL *s, X509 *x, EVP_PKEY *pkey);
 static int tls12_sigalg_allowed(const SSL *s, int op, const SIGALG_LOOKUP *lu);
